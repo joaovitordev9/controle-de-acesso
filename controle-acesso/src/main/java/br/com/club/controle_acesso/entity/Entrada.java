@@ -22,4 +22,19 @@ public class Entrada {
 
 
     private LocalDateTime data_entrada;
+
+    public String getEntradaNome(){
+        return pessoa.getNome();
+    }
+
+    public Long getEntradaId(){
+        return pessoa.getId();
+    }
+    public String getCategoria(){
+        return pessoa.getCategoriaNome();
+    }
+
+
+
+
 }

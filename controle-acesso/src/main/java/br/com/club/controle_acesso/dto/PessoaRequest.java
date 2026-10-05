@@ -17,7 +17,7 @@ public class PessoaRequest {
     private String cpf;
     private Long categoria_id;
 
-    public void preencherPessoaRequest(Pessoa pessoa){
+    public void preencherPessoa(Pessoa pessoa){
         pessoa.setNome(nome);
         pessoa.setCidade(cidade);
         pessoa.setTelefone(telefone);

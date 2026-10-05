@@ -20,7 +20,7 @@ public class PessoaService {
 
         Pessoa pessoa = new Pessoa();
 
-        pessoaRequest.preencherPessoaRequest(pessoa);
+        pessoaRequest.preencherPessoa(pessoa);
 
         pessoa = pessoaRepository.save(pessoa);
 
