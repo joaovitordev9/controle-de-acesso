@@ -2,6 +2,7 @@ package br.com.club.controle_acesso.dto;
 
 
 import br.com.club.controle_acesso.entity.Categoria;
+import br.com.club.controle_acesso.entity.Pessoa;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,5 +16,12 @@ public class PessoaRequest {
     private String telefone;
     private String cpf;
     private Long categoria_id;
+
+    public void preencherPessoaRequest(Pessoa pessoa){
+        pessoa.setNome(nome);
+        pessoa.setCidade(cidade);
+        pessoa.setTelefone(telefone);
+        pessoa.setCpf(cpf);
+    }
 
 }

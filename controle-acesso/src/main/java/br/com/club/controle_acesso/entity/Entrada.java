@@ -18,8 +18,8 @@ public class Entrada {
 
     @ManyToOne
     @JoinColumn(name = "pessoa_id")
-    private Pessoa pessoa_id;
+    private Pessoa pessoa;
 
-    
+
     private LocalDateTime data_entrada;
 }

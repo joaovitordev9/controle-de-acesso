@@ -21,6 +21,12 @@ public class Pessoa {
 
     @ManyToOne
     @JoinColumn(name = "categoria_id")
-    private Categoria categoria_id;
+    private Categoria categoria;
+
+    public String getCategoriaNome(){
+        return categoria.getNome();
+    }
+
+
 
 }
