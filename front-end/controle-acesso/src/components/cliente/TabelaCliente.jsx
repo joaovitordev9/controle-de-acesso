@@ -1,4 +1,13 @@
+import { Button } from "../ui/button";
 import "./TabelaCliente.css"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from "@/components/ui/table";
 
 function TabelaClientes({clientes, onEditar, onExcluir}) {
 
@@ -7,59 +16,61 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
     };
 
     return (
-        <div className="tabela-container">
-            <table className="tabela-clientes">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Telefone</th>
-                        <th>Cidade</th>
-                        <th>Código da Cota</th>
-                        <th>Categoria</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+        <div className="">
+            <Table className="">
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>CPF</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Cidade</TableHead>
+                        <TableHead>Código da Cota</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Ações</TableHead>
+                    </TableRow>
+                </TableHeader>
 
-                <tbody>
+                <TableBody>
                     {clientes.map(cliente => (
-                        <tr key={cliente.id} className="linha-cliente">
-                            <td className="coluna-nome">{cliente.nome}</td>
-                            <td className="coluna-cpf">{cliente.cpf}</td>
-                            <td className="coluna-telefone">{cliente.telefone}</td>
-                            <td className="coluna-cidade">{cliente.cidade}</td>
-                            <td className="coluna-cota">{cliente.codigoDaCota}</td>
-                            <td className="coluna-categoria">{cliente.categoria}</td>
+                        <TableRow key={cliente.id} className="">
+                            <TableCell className="">{cliente.nome}</TableCell>
+                            <TableCell className="">{cliente.cpf}</TableCell>
+                            <TableCell className="">{cliente.telefone}</TableCell>
+                            <TableCell className="">{cliente.cidade}</TableCell>
+                            <TableCell className="">{cliente.codigoDaCota}</TableCell>
+                            <TableCell className="">{cliente.categoria}</TableCell>
 
 
-                            <td className="coluna-acoes">
-                                <div className="acoes-cliente">
-                                    <button
-                                        className="botao-acao botao-editar"
+                            <TableCell className="">
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="link"
+                                        size="sm"
                                         onClick={() => onEditar(cliente)}
                                     >
                                         Editar
-                                    </button>
+                                    </Button>
 
-                                    <button
-                                        className="botao-acao botao-excluir"
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
                                         onClick={() => onExcluir(cliente)}
                                     >
                                         Excluir
-                                    </button>
+                                    </Button>
 
-                                    <button
-                                        className="botao-acao botao-entrada"
+                                    <Button
+                                        size="sm"
                                         onClick={() => registrarEntrada(cliente)}
                                     >
                                         Registrar entrada
-                                    </button>
+                                    </Button>
                                 </div>
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     ))}
-                </tbody>
-            </table>
+                </TableBody>
+            </Table>
         </div>
     );
 
