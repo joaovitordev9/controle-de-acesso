@@ -218,33 +218,68 @@
     color: #2864a8;
 }
 
+
 /* ===== Ações ===== */
+
+.coluna-acoes {
+    min-width: 250px;
+}
 
 .acoes-cliente {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .botao-acao {
-    padding: 7px 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 34px;
+    padding: 8px 11px;
+
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: 8px;
+
     background-color: transparent;
-    font-size: 11px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+
     cursor: pointer;
-    transition: background-color 0.2s;
+
+    transition:
+            background-color 0.2s,
+            border-color 0.2s,
+            color 0.2s,
+            transform 0.15s;
 }
+
+.botao-acao:focus-visible {
+    outline: 3px solid rgba(14, 148, 136, 0.25);
+    outline-offset: 2px;
+}
+
+.botao-acao:active {
+    transform: scale(0.97);
+}
+
+/* Editar */
 
 .botao-editar {
     border-color: #dce8ef;
+    background-color: #ffffff;
     color: #416579;
 }
 
 .botao-editar:hover {
+    border-color: #c9dce5;
     background-color: #edf5f8;
 }
+
+/* Registrar entrada */
 
 .botao-entrada {
     background-color: #e6f6ef;
@@ -255,14 +290,16 @@
     background-color: #d0efdf;
 }
 
+/* Excluir */
+
 .botao-excluir {
+    background-color: #fff5f5;
     color: #c34c4c;
 }
 
 .botao-excluir:hover {
-    background-color: #fff0f0;
+    background-color: #ffe5e5;
 }
-
 /* ===== Responsividade ===== */
 
 @media (max-width: 768px) {
@@ -287,3 +324,89 @@
         box-sizing: border-box;
     }
 }
+/* ===== Barra de cadastro e busca ===== */
+
+
+.barra-ferramentas {
+   display: flex;
+   align-items: center;
+   justify-content: flex-start;
+   gap: 16px;
+   padding: 20px 24px;
+   margin-bottom: 20px;
+   border: 1px solid #e1ebef;
+   border-radius: 12px;
+   background-color: #ffffff;
+   box-shadow: 0 4px 16px rgba(30, 65, 85, 0.04);
+}
+
+
+/* Botão cadastrar */
+
+.botao-novo-cliente {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid #087f8c;
+    border-radius: 8px;
+    background-color: #087f8c;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.botao-novo-cliente:hover {
+    background-color: #066873;
+    box-shadow: 0 4px 10px rgba(8, 127, 140, 0.18);
+    transform: translateY(-1px);
+}
+
+.botao-novo-cliente:active {
+    transform: translateY(0);
+}
+
+/* Campo de busca */
+
+.campo-busca-clientes {
+    width: 340px;
+    max-width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1px solid #dce7ec;
+    border-radius: 8px;
+    outline: none;
+    background-color: #f9fcfd;
+    color: #193449;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.campo-busca-clientes:focus {
+    border-color: #0e9488;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(14, 148, 136, 0.12);
+}
+
+/* Tela menor */
+
+@media (max-width: 600px) {
+    .barra-ferramentas {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .botao-novo-cliente,
+    .campo-busca-clientes {
+        width: 100%;
+    }
+}
+

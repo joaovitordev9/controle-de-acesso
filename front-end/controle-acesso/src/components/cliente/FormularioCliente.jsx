@@ -33,123 +33,129 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
     }
 
     return (
-        <form className="formulario-cliente" onSubmit={enviarFormulario}>
+        <div className="modal-fundo" onClick={onCancelar}>
+            <div
+                className="modal-conteudo"
+                onClick={(evento) => evento.stopPropagation()}>
 
-            <div className="formulario-cabecalho">
-                <h2>
-                    {cliente ? "Editar cliente" : "Cadastrar cliente"}
-                </h2>
+                <form className="formulario-cliente" onSubmit={enviarFormulario}>
 
-                <p>
-                    Preencha os dados para manter o cadastro atualizado.
-                </p>
+                    <div className="formulario-cabecalho">
+                        <h2>
+                            {cliente ? "Editar cliente" : "Cadastrar cliente"}
+                        </h2>
+
+                        <p>
+                            Preencha os dados para manter o cadastro atualizado.
+                        </p>
+                    </div>
+
+                    <div className="campos-formulario">
+
+                        <div className="campo-formulario campo-largo">
+                            <label htmlFor="nome">Nome completo</label>
+
+                            <input
+                                type="text"
+                                id="nome"
+                                name="nome"
+                                value={dados.nome}
+                                onChange={atualizarCampo}
+                                placeholder="Ex.: João Silva"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label htmlFor="cpf">CPF</label>
+
+                            <input
+                                type="text"
+                                id="cpf"
+                                name="cpf"
+                                value={dados.cpf}
+                                onChange={atualizarCampo}
+                                placeholder="000.000.000-00"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label htmlFor="telefone">Telefone</label>
+
+                            <input
+                                type="tel"
+                                id="telefone"
+                                name="telefone"
+                                value={dados.telefone}
+                                onChange={atualizarCampo}
+                                placeholder="(00) 00000-0000"
+                            />
+                        </div>
+
+                        <div className="campo-formulario campo-largo">
+                            <label htmlFor="email">E-mail</label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={dados.email}
+                                onChange={atualizarCampo}
+                                placeholder="exemplo@email.com"
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label htmlFor="codigoDaCota">Código da cota</label>
+
+                            <input
+                                type="text"
+                                id="codigoDaCota"
+                                name="codigoDaCota"
+                                value={dados.codigoDaCota}
+                                onChange={atualizarCampo}
+                                placeholder="Ex.: A15"
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label htmlFor="categoria">Categoria</label>
+
+                            <select
+                                id="categoria"
+                                name="categoria"
+                                value={dados.categoria}
+                                onChange={atualizarCampo}
+                                required
+                            >
+                                <option value="Sócio">Sócio</option>
+                                <option value="Dependente">Dependente</option>
+                                <option value="Visitante">Visitante</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div className="acoes-formulario">
+                        <button
+                            type="button"
+                            className="botao-cancelar"
+                            onClick={onCancelar}
+                        >
+                            Cancelar
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="botao-salvar"
+                        >
+                            {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div className="campos-formulario">
-
-                <div className="campo-formulario campo-largo">
-                    <label htmlFor="nome">Nome completo</label>
-
-                    <input
-                        type="text"
-                        id="nome"
-                        name="nome"
-                        value={dados.nome}
-                        onChange={atualizarCampo}
-                        placeholder="Ex.: João Silva"
-                        required
-                    />
-                </div>
-
-                <div className="campo-formulario">
-                    <label htmlFor="cpf">CPF</label>
-
-                    <input
-                        type="text"
-                        id="cpf"
-                        name="cpf"
-                        value={dados.cpf}
-                        onChange={atualizarCampo}
-                        placeholder="000.000.000-00"
-                        required
-                    />
-                </div>
-
-                <div className="campo-formulario">
-                    <label htmlFor="telefone">Telefone</label>
-
-                    <input
-                        type="tel"
-                        id="telefone"
-                        name="telefone"
-                        value={dados.telefone}
-                        onChange={atualizarCampo}
-                        placeholder="(00) 00000-0000"
-                    />
-                </div>
-
-                <div className="campo-formulario campo-largo">
-                    <label htmlFor="email">E-mail</label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={dados.email}
-                        onChange={atualizarCampo}
-                        placeholder="exemplo@email.com"
-                    />
-                </div>
-
-                <div className="campo-formulario">
-                    <label htmlFor="codigoDaCota">Código da cota</label>
-
-                    <input
-                        type="text"
-                        id="codigoDaCota"
-                        name="codigoDaCota"
-                        value={dados.codigoDaCota}
-                        onChange={atualizarCampo}
-                        placeholder="Ex.: A15"
-                    />
-                </div>
-
-                <div className="campo-formulario">
-                    <label htmlFor="categoria">Categoria</label>
-
-                    <select
-                        id="categoria"
-                        name="categoria"
-                        value={dados.categoria}
-                        onChange={atualizarCampo}
-                        required
-                    >
-                        <option value="Sócio">Sócio</option>
-                        <option value="Dependente">Dependente</option>
-                        <option value="Visitante">Visitante</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div className="acoes-formulario">
-                <button
-                    type="button"
-                    className="botao-cancelar"
-                    onClick={onCancelar}
-                >
-                    Cancelar
-                </button>
-
-                <button
-                    type="submit"
-                    className="botao-salvar"
-                >
-                    {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
-                </button>
-            </div>
-
-        </form>
+        </div>
     );
 }
 

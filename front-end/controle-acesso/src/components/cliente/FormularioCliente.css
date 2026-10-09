@@ -1,6 +1,29 @@
-.formulario-cliente {
+
+.modal-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-conteudo {
     width: 100%;
     max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px;
+}
+
+.formulario-cliente {
+    width: 100%;
+    max-width: none;
     box-sizing: border-box;
     padding: 28px;
     border: 1px solid #e1ebef;
