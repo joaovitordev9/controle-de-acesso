@@ -1,0 +1,138 @@
+.formulario-cliente {
+    width: 100%;
+    max-width: 650px;
+    box-sizing: border-box;
+    padding: 28px;
+    border: 1px solid #e1ebef;
+    border-radius: 14px;
+    background-color: #ffffff;
+    color: #193449;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: 0 4px 16px rgba(30, 65, 85, 0.05);
+}
+
+.formulario-cabecalho {
+    margin-bottom: 26px;
+}
+
+.formulario-cabecalho h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.formulario-cabecalho p {
+    margin: 0;
+    color: #718495;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.campos-formulario {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+}
+
+.campo-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.campo-largo {
+    grid-column: span 2;
+}
+
+.campo-formulario label {
+    color: #334e60;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #dce7ec;
+    border-radius: 8px;
+    outline: none;
+    background-color: #fbfdfe;
+    color: #193449;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.campo-formulario input::placeholder {
+    color: #9aabb5;
+}
+
+.campo-formulario input:focus,
+.campo-formulario select:focus {
+    border-color: #0e9488;
+    box-shadow: 0 0 0 3px rgba(14, 148, 136, 0.12);
+}
+
+.acoes-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #e8eff2;
+}
+
+.acoes-formulario button {
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.botao-cancelar {
+    border: 1px solid #dce7ec;
+    background-color: white;
+    color: #526b7b;
+}
+
+.botao-cancelar:hover {
+    background-color: #f4f8fa;
+}
+
+.botao-salvar {
+    border: 1px solid #087f8c;
+    background-color: #087f8c;
+    color: white;
+}
+
+.botao-salvar:hover {
+    background-color: #066873;
+}
+
+@media (max-width: 520px) {
+    .formulario-cliente {
+        padding: 20px;
+    }
+
+    .campos-formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-largo {
+        grid-column: span 1;
+    }
+
+    .acoes-formulario {
+        flex-direction: column-reverse;
+    }
+
+    .acoes-formulario button {
+        width: 100%;
+    }
+}
