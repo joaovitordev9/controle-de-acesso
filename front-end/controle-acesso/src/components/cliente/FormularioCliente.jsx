@@ -94,17 +94,18 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
                         </div>
 
                         <div className="campo-formulario campo-largo">
-                            <label htmlFor="email">E-mail</label>
+                            <label htmlFor="cidade">Cidade</label>
 
                             <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={dados.email}
+                                type="text"
+                                id="cidade"
+                                name="cidade"
+                                value={dados.cidade}
                                 onChange={atualizarCampo}
-                                placeholder="exemplo@email.com"
+                                placeholder="Digite a cidade"
                             />
                         </div>
+
 
                         <div className="campo-formulario">
                             <label htmlFor="codigoDaCota">Código da cota</label>

@@ -11,27 +11,9 @@ const Clientes = function Clientes() {
             nome: "Carlos Eduardo Martins",
             cpf: "123.456.789-09",
             telefone: "(37) 99123-4567",
-            email: "carlos.martins@email.com",
+            cidade: "Formiga",
             codigoDaCota: "A15",
             categoria: "Sócio"
-        },
-        {
-            id: 2,
-            nome: "Mariana Oliveira Santos",
-            cpf: "987.654.321-00",
-            telefone: "(37) 99234-5678",
-            email: "mariana.santos@email.com",
-            codigoDaCota: "B08",
-            categoria: "Dependente"
-        },
-        {
-            id: 3,
-            nome: "Rafael Henrique Costa",
-            cpf: "456.789.123-09",
-            telefone: "(37) 99345-6789",
-            email: "rafael.costa@email.com",
-            codigoDaCota: "C22",
-            categoria: "Visitante"
         }
     ];
     const [clientes, setClientes] = useState( clientesIniciais);
