@@ -1,35 +1,6 @@
-import LinhaCliente from "./LinhaCliente";
+import "./TabelaCliente.css"
 
-function TabelaClientes() {
-
-    const clientes = [
-        {
-            id: 1,
-            nome: "João Silva",
-            cpf: "123.456.789-00",
-            telefone: "(37) 99999-9999",
-            email: "joao@gmail.com",
-            codigoDaCota: "A15",
-            categoria: "Sócio"
-        },
-        {
-            id: 2,
-            nome: "Maria Souza",
-            cpf: "987.654.321-00",
-            telefone: "(37) 98888-8888",
-            email: "maria@gmail.com",
-            codigoDaCota: "B08",
-            categoria: "Visitante"
-        }
-    ];
-
-    const editarCliente = (cliente) => {
-        console.log("Editar:", cliente);
-    };
-
-    const excluirCliente = (id) => {
-        console.log("Excluir:", id);
-    };
+function TabelaClientes({clientes, onEditar, onExcluir}) {
 
     const registrarEntrada = (cliente) => {
         console.log("Registrar entrada:", cliente);
@@ -51,13 +22,28 @@ function TabelaClientes() {
 
             <tbody>
                 {clientes.map(cliente => (
-                    <LinhaCliente
-                        key={cliente.id}
-                        cliente={cliente}
-                        onEditar={editarCliente}
-                        onExcluir={excluirCliente}
-                        onRegistrarEntrada={registrarEntrada}
-                    />
+                    <tr key={cliente.id} className="linha-cliente">
+                        <td className="coluna-nome">{cliente.nome}</td>
+                        <td className="coluna-cpf">{cliente.cpf}</td>
+                        <td className="coluna-telefone">{cliente.telefone}</td>
+                        <td className="coluna-email">{cliente.email}</td>
+                        <td className="coluna-cota">{cliente.codigoDaCota}</td>
+                        <td className="coluna-categoria">{cliente.categoria}</td>
+                        
+                        <td className="coluna-acoes">
+                            <button onClick={() => onEditar(cliente)}>
+                                Editar
+                            </button>
+
+                            <button onClick={() => onExcluir(cliente)}>
+                                Excluir
+                            </button>
+
+                            <button onClick={() => registrarEntrada(cliente)}>
+                                Registrar Entrada
+                            </button>
+                        </td>
+                    </tr>
                 ))}
             </tbody>
         </table>
