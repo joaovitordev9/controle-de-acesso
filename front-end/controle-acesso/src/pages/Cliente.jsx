@@ -119,13 +119,30 @@ const Clientes = function Clientes() {
 
     return (
         <>
-            {!formularioAberto && (
-                <button onClick={function () {
-                    setFormularioAberto(true);
-                }}>
-                    Cadastrar cliente
-                </button>
-            )}
+            <div className="barra-ferramentas">
+                <input
+                    className="campo-busca-clientes"
+                    type="text"
+                    placeholder="Buscar por nome, CPF ou código da cota..."
+                    value={busca}
+                    onChange={function (evento) {
+                        setBusca(evento.target.value);
+                    }}
+                />
+
+                {!formularioAberto && (
+                    <button
+                        className="botao-novo-cliente"
+                        onClick={function () {
+                            setClienteEditando(null);
+                            setFormularioAberto(true);
+                        }}
+                    >
+                        + Cadastrar cliente
+                    </button>
+                )}
+            </div>
+
             {formularioAberto && (
                 <FormularioCliente
                     cliente={clienteEditando}
@@ -133,16 +150,7 @@ const Clientes = function Clientes() {
                     onCancelar={cancelarCadastro}
                 />
             )}
-            <div>
-                <input
-                    type="text"
-                    placeholder="Buscar por cliente"
-                    value={busca}
-                    onChange={function (evento) {
-                        setBusca(evento.target.value);
-                    }}
-                />
-            </div>
+
             <TabelaCliente 
                 clientes={clientesFiltrados}
                 onEditar={editarCliente}
