@@ -1,4 +1,15 @@
-import "./ModalConfirmarExclusao.css";
+// import "./ModalConfirmarExclusao.css";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { Button } from "@/components/ui/button";
 
 function ModalConfirmarExclusao({ cliente, onConfirmar, onCancelar }) {
     if (!cliente) {
@@ -6,51 +17,55 @@ function ModalConfirmarExclusao({ cliente, onConfirmar, onCancelar }) {
     }
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-excluir-cliente">
+        <AlertDialog open={true} onOpenChange={onCancelar}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-destructive/10">
+                        <span className="text-2xl font-bold text-destructive">
+                            !
+                        </span>
+                    </div>
 
-                <div className="modal-icone-excluir">
-                    <span>!</span>
+                    <AlertDialogTitle className="mx-auto text-xl">
+                        Excluir cliente?
+                    </AlertDialogTitle>
+
+                </AlertDialogHeader>
+
+                <div className="space-y-2 rounded-md border bg-muted/40 p-4">
+                    <strong className="block text-sm font-semibold text-foreground">
+                        {cliente.nome}
+                    </strong>
+
+                    <span className="block text-sm text-muted-foreground">
+                        CPF: {cliente.cpf}
+                    </span>
+
+                    <span className="block text-sm text-muted-foreground">
+                        Código da cota: {cliente.codigoDaCota}
+                    </span>
                 </div>
 
-                <h2>Excluir cliente?</h2>
-
-                <p className="modal-mensagem">
-                    Tem certeza de que deseja excluir este cliente?
-                </p>
-
-                <div className="modal-cliente-info">
-                    <strong>{cliente.nome}</strong>
-                    <span>CPF: {cliente.cpf}</span>
-                    <span>Código da cota: {cliente.codigoDaCota}</span>
-                </div>
-
-                <p className="modal-aviso">
+                <p className="text-sm text-muted-foreground">
                     Essa ação não poderá ser desfeita.
                 </p>
 
-                <div className="modal-acoes">
-                    <button
-                        type="button"
-                        className="botao-cancelar"
-                        onClick={onCancelar}
-                    >
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={onCancelar}>
                         Cancelar
-                    </button>
+                    </AlertDialogCancel>
 
-                    <button
-                        type="button"
-                        className="botao-excluir"
+                    <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         onClick={function () {
                             onConfirmar(cliente);
                         }}
                     >
                         Excluir cliente
-                    </button>
-                </div>
-
-            </div>
-        </div>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }
 

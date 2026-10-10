@@ -2,6 +2,9 @@ import { useState } from "react";
 import TabelaCliente from "../components/cliente/TabelaCliente";
 import FormularioCliente from "../components/cliente/FormularioCliente";
 import ModalConfirmarExclusao from "../components/cliente/ModalConfirmarExclusao";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const Clientes = function Clientes() {
         
@@ -100,10 +103,24 @@ const Clientes = function Clientes() {
     }
 
     return (
-        <>
-            <div className="barra-ferramentas">
-                <input
-                    className="campo-busca-clientes"
+        <main className="min-w-0 flex-1 p-8">
+            <Dialog open={formularioAberto} onOpenChange={setFormularioAberto}>
+                <DialogContent className="sm:max-w-2xl">
+                    <FormularioCliente
+                        cliente={clienteEditando}
+                        onSalvar={salvarCliente}
+                        onCancelar={cancelarCadastro}
+                    />
+                </DialogContent>
+            </Dialog>
+
+            <h1 className="mb-6 text-2xl font-semibold">
+                Clientes
+            </h1>
+
+            <div className="flex items-center gap-4 border-b pb-4">
+                <Input
+                    className="h-10 w-110"
                     type="text"
                     placeholder="Buscar por nome, CPF ou código da cota..."
                     value={busca}
@@ -112,38 +129,38 @@ const Clientes = function Clientes() {
                     }}
                 />
 
-                {!formularioAberto && (
-                    <button
-                        className="botao-novo-cliente"
-                        onClick={function () {
-                            setClienteEditando(null);
-                            setFormularioAberto(true);
-                        }}
-                    >
-                        + Cadastrar cliente
-                    </button>
-                )}
+                <Button
+                    className="h-10 whitespace-nowrap"
+                    onClick={function () {
+                        setClienteEditando(null);
+                        setFormularioAberto(true);
+                    }}
+                >
+                    + Cadastrar cliente
+                </Button>
             </div>
 
-            {formularioAberto && (
+            {/* {formularioAberto && (
                 <FormularioCliente
                     cliente={clienteEditando}
                     onSalvar={salvarCliente}
                     onCancelar={cancelarCadastro}
                 />
-            )}
+            )} */}
 
-            <TabelaCliente 
+            <TabelaCliente
                 clientes={clientesFiltrados}
                 onEditar={editarCliente}
                 onExcluir={iniciarExclusao}
             />
+
+
             <ModalConfirmarExclusao
                 cliente={clienteExcluindo}
                 onConfirmar={confirmarExclusao}
                 onCancelar={cancelarExclusao}
             />
-        </>
+        </main>
     
     )
 }

@@ -8,6 +8,8 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
+import { Dialog, DialogTrigger, DialogContent } from "../ui/dialog";
+import FormularioCliente from "./FormularioCliente";
 
 function TabelaClientes({clientes, onEditar, onExcluir}) {
 
@@ -16,62 +18,69 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
     };
 
     return (
-        <div className="">
-            <Table className="">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>CPF</TableHead>
-                        <TableHead>Telefone</TableHead>
-                        <TableHead>Cidade</TableHead>
-                        <TableHead>Código da Cota</TableHead>
-                        <TableHead>Categoria</TableHead>
-                        <TableHead>Ações</TableHead>
+        
+        <Table className="mx-auto w-full table-fixed ">
+            <colgroup>
+                <col className="w-[20%]" /> {/* Nome */}
+                <col className="w-[14%]" /> {/* CPF */}
+                <col className="w-[12%]" /> {/* Telefone */}
+                <col className="w-[12%]" /> {/* Cidade */}
+                <col className="w-[12%]" /> {/* Código da Cota */}
+                <col className="w-[10%]" /> {/* Categoria */}
+                <col className="w-[20%]" /> {/* Ações */}
+            </colgroup>
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="whitespace-normal break-words">Nome</TableHead>
+                    <TableHead className="whitespace-normal break-words">CPF</TableHead>
+                    <TableHead className="whitespace-normal break-words">Telefone</TableHead>
+                    <TableHead className="whitespace-normal break-words">Cidade</TableHead>
+                    <TableHead className="whitespace-normal break-words">Código da Cota</TableHead>
+                    <TableHead className="whitespace-normal break-words">Categoria</TableHead>
+                    <TableHead className="whitespace-normal break-words">Ações</TableHead>
+                </TableRow>
+            </TableHeader>
+
+            <TableBody>
+                {clientes.map(cliente => (
+                    <TableRow key={cliente.id} className="">
+                        <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
+                        <TableCell className="flex flex-wrap gap-2">
+                            <Dialog>
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    onClick={() => onEditar(cliente)}
+                                >
+                                    Editar
+                                </Button>
+                            </Dialog>
+
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => onExcluir(cliente)}
+                            >
+                                Excluir
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                onClick={() => registrarEntrada(cliente)}
+                            >
+                                Registrar entrada
+                            </Button>
+                        </TableCell>
                     </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                    {clientes.map(cliente => (
-                        <TableRow key={cliente.id} className="">
-                            <TableCell className="">{cliente.nome}</TableCell>
-                            <TableCell className="">{cliente.cpf}</TableCell>
-                            <TableCell className="">{cliente.telefone}</TableCell>
-                            <TableCell className="">{cliente.cidade}</TableCell>
-                            <TableCell className="">{cliente.codigoDaCota}</TableCell>
-                            <TableCell className="">{cliente.categoria}</TableCell>
-
-
-                            <TableCell className="">
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="link"
-                                        size="sm"
-                                        onClick={() => onEditar(cliente)}
-                                    >
-                                        Editar
-                                    </Button>
-
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => onExcluir(cliente)}
-                                    >
-                                        Excluir
-                                    </Button>
-
-                                    <Button
-                                        size="sm"
-                                        onClick={() => registrarEntrada(cliente)}
-                                    >
-                                        Registrar entrada
-                                    </Button>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
+                ))}
+            </TableBody>
+        </Table>
+        
     );
 
 
