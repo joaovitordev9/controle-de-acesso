@@ -1,6 +1,11 @@
 
 import { useState } from "react";
-import "./FormularioCliente.css";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
+import { DialogHeader, DialogTitle, DialogDescription, DialogClose} from "../ui/dialog";
+// import "./FormularioCliente.css";
 
 function FormularioCliente({ cliente, onSalvar, onCancelar }) {
 
@@ -8,7 +13,7 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
         nome: cliente ? cliente.nome || "" : "",
         cpf: cliente ? cliente.cpf || "" : "",
         telefone: cliente ? cliente.telefone || "" : "",
-        email: cliente ? cliente.email || "" : "",
+        cidade: cliente ? cliente.cidade || "" : "",
         codigoDaCota: cliente ? cliente.codigoDaCota || "" : "",
         categoria: cliente ? cliente.categoria || "Sócio" : "Sócio"
     });
@@ -33,130 +38,133 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
     }
 
     return (
-        <div className="modal-fundo" onClick={onCancelar}>
-            <div
-                className="modal-conteudo"
-                onClick={(evento) => evento.stopPropagation()}>
+        <form onSubmit={enviarFormulario} className="space-y-6">
 
-                <form className="formulario-cliente" onSubmit={enviarFormulario}>
+            <DialogHeader>
+                <DialogTitle className="text-xl font-semibold tracking-tight">
+                    {cliente ? "Editar cliente" : "Cadastrar cliente"}
+                </DialogTitle>
 
-                    <div className="formulario-cabecalho">
-                        <h2>
-                            {cliente ? "Editar cliente" : "Cadastrar cliente"}
-                        </h2>
+                <DialogDescription className="text-sm text-muted-foreground">
+                    Preencha os dados para manter o cadastro atualizado.
+                </DialogDescription>
+            </DialogHeader>
 
-                        <p>
-                            Preencha os dados para manter o cadastro atualizado.
-                        </p>
-                    </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
 
-                    <div className="campos-formulario">
+                <div className="col-span-2 grid gap-2">
+                    <Label htmlFor="nome">Nome completo</Label>
 
-                        <div className="campo-formulario campo-largo">
-                            <label htmlFor="nome">Nome completo</label>
+                    <Input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        value={dados.nome}
+                        onChange={atualizarCampo}
+                        placeholder="Ex.: João Silva"
+                        required
+                    />
+                </div>
 
-                            <input
-                                type="text"
-                                id="nome"
-                                name="nome"
-                                value={dados.nome}
-                                onChange={atualizarCampo}
-                                placeholder="Ex.: João Silva"
-                                required
-                            />
-                        </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="cpf">CPF</Label>
 
-                        <div className="campo-formulario">
-                            <label htmlFor="cpf">CPF</label>
+                    <Input
+                        type="text"
+                        id="cpf"
+                        name="cpf"
+                        value={dados.cpf}
+                        onChange={atualizarCampo}
+                        placeholder="000.000.000-00"
+                        required
+                    />
+                </div>
 
-                            <input
-                                type="text"
-                                id="cpf"
-                                name="cpf"
-                                value={dados.cpf}
-                                onChange={atualizarCampo}
-                                placeholder="000.000.000-00"
-                                required
-                            />
-                        </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="telefone">Telefone</Label>
 
-                        <div className="campo-formulario">
-                            <label htmlFor="telefone">Telefone</label>
+                    <Input
+                        type="tel"
+                        id="telefone"
+                        name="telefone"
+                        value={dados.telefone}
+                        onChange={atualizarCampo}
+                        placeholder="(00) 00000-0000"
+                    />
+                </div>
 
-                            <input
-                                type="tel"
-                                id="telefone"
-                                name="telefone"
-                                value={dados.telefone}
-                                onChange={atualizarCampo}
-                                placeholder="(00) 00000-0000"
-                            />
-                        </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="cidade">Cidade</Label>
 
-                        <div className="campo-formulario campo-largo">
-                            <label htmlFor="cidade">Cidade</label>
+                    <Input
+                        type="text"
+                        id="cidade"
+                        name="cidade"
+                        value={dados.cidade}
+                        onChange={atualizarCampo}
+                        placeholder="Digite a cidade"
+                    />
+                </div>
 
-                            <input
-                                type="text"
-                                id="cidade"
-                                name="cidade"
-                                value={dados.cidade}
-                                onChange={atualizarCampo}
-                                placeholder="Digite a cidade"
-                            />
-                        </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="codigoDaCota">Código da cota</Label>
 
+                    <Input
+                        type="text"
+                        id="codigoDaCota"
+                        name="codigoDaCota"
+                        value={dados.codigoDaCota}
+                        onChange={atualizarCampo}
+                        placeholder="Ex.: A15"
+                    />
+                </div>
 
-                        <div className="campo-formulario">
-                            <label htmlFor="codigoDaCota">Código da cota</label>
+                <div className="col-span-2 grid gap-2">
+                    <Label htmlFor="categoria">Categoria</Label>
 
-                            <input
-                                type="text"
-                                id="codigoDaCota"
-                                name="codigoDaCota"
-                                value={dados.codigoDaCota}
-                                onChange={atualizarCampo}
-                                placeholder="Ex.: A15"
-                            />
-                        </div>
+                    <Select
+                        value={dados.categoria}
+                        onValueChange={function (valor) {
+                            atualizarCampo({
+                                target: {
+                                    name: "categoria",
+                                    value: valor
+                                }
+                            });
+                        }}
+                    >
+                        <SelectTrigger id="categoria" className="w-full">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
 
-                        <div className="campo-formulario">
-                            <label htmlFor="categoria">Categoria</label>
+                        <SelectContent>
+                            <SelectItem value="Sócio">Sócio</SelectItem>
+                            <SelectItem value="Dependente">Dependente</SelectItem>
+                            <SelectItem value="Visitante">Visitante</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 
-                            <select
-                                id="categoria"
-                                name="categoria"
-                                value={dados.categoria}
-                                onChange={atualizarCampo}
-                                required
-                            >
-                                <option value="Sócio">Sócio</option>
-                                <option value="Dependente">Dependente</option>
-                                <option value="Visitante">Visitante</option>
-                            </select>
-                        </div>
-
-                    </div>
-
-                    <div className="acoes-formulario">
-                        <button
-                            type="button"
-                            className="botao-cancelar"
-                            onClick={onCancelar}
-                        >
-                            Cancelar
-                        </button>
-
-                        <button
-                            type="submit"
-                            className="botao-salvar"
-                        >
-                            {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
-                        </button>
-                    </div>
-                </form>
             </div>
-        </div>
+
+            <div className="flex justify-end gap-3 border-t pt-4">
+                <DialogClose>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onCancelar}
+                    >
+                        Cancelar
+                    </Button>
+                </DialogClose>
+                <DialogClose>
+                    <Button type="submit">
+                        {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
+                    </Button>
+                </DialogClose>
+            </div>
+
+        </form>
     );
 }
 
