@@ -15,6 +15,7 @@ public class Pessoa {
     private String nome;
     private String cidade;
     private String telefone;
+    private int codigo_cota;
 
     @Column(unique = true, nullable = false)
     private String cpf;

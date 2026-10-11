@@ -7,6 +7,8 @@ import br.com.club.controle_acesso.entity.Pessoa;
 import br.com.club.controle_acesso.repository.PessoaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class PessoaService {
 
@@ -14,6 +16,13 @@ public class PessoaService {
 
     public PessoaService(PessoaRepository pessoaRepository) {
         this.pessoaRepository = pessoaRepository;
+    }
+
+    public List<PessoaResponse> listarPessoas(){
+        return pessoaRepository.findAll()
+                .stream()
+                .map(PessoaResponse::PreencherPessoaResponse)
+                .toList();
     }
 
     public PessoaResponse cadastrarPessoa(PessoaRequest pessoaRequest){
@@ -30,10 +39,7 @@ public class PessoaService {
     public PessoaResponse alterarPessoa(Long id, PessoaRequest pessoaRequest){
         Pessoa pessoa = pessoaRepository.findById(id).orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
 
-        pessoa.setNome(pessoaRequest.getNome());
-        pessoa.setCidade(pessoaRequest.getCidade());
-        pessoa.setTelefone(pessoaRequest.getTelefone());
-        pessoa.setCpf(pessoaRequest.getCpf());
+        pessoaRequest.preencherPessoa(pessoa);
 
         pessoa = pessoaRepository.save(pessoa);
 
