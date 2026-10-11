@@ -9,6 +9,8 @@ import br.com.club.controle_acesso.repository.EntradaRepository;
 import br.com.club.controle_acesso.repository.PessoaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EntradaService {
 
@@ -20,6 +22,12 @@ public class EntradaService {
         this.pessoaRepository = pessoaRepository;
     }
 
+    public List<EntradaResponse> listarEntradas() {
+        return entradaRepository.findAll()
+                .stream()
+                .map(EntradaResponse::PreencherEntrada)
+                .toList();
+    }
 
     public EntradaResponse cadastrarEntrada(EntradaRequest entradaRequest){
 
@@ -29,7 +37,19 @@ public class EntradaService {
 
         entrada.setPessoa(pessoa);
 
-        entradaRepository.save(entrada);
+        entrada = entradaRepository.save(entrada);
+
+        return EntradaResponse.PreencherEntrada(entrada);
+    }
+
+    public EntradaResponse alterarEntrada(Long id, EntradaRequest entradaRequest){
+
+        Pessoa pessoa = pessoaRepository.findById(entradaRequest.getPessoa_id()).orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
+        Entrada entrada = entradaRepository.findById(id).orElseThrow(() -> new RuntimeException("Entrada não encontrada"));
+
+        entrada.setPessoa(pessoa);
+
+        entrada = entradaRepository.save(entrada);
 
         return EntradaResponse.PreencherEntrada(entrada);
     }

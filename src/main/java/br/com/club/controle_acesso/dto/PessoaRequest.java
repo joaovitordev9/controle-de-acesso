@@ -15,6 +15,7 @@ public class PessoaRequest {
     private String cidade;
     private String telefone;
     private String cpf;
+    private int codigo_cota;
     private Long categoria_id;
 
     public void preencherPessoa(Pessoa pessoa){
@@ -22,6 +23,7 @@ public class PessoaRequest {
         pessoa.setCidade(cidade);
         pessoa.setTelefone(telefone);
         pessoa.setCpf(cpf);
+        pessoa.setCodigo_cota(codigo_cota);
     }
 
 }

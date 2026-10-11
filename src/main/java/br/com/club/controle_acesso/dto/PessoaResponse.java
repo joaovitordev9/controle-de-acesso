@@ -15,6 +15,7 @@ public class PessoaResponse {
     private String cidade;
     private String telefone;
     private String cpf;
+    private int codigo_cota;
     private String categoria;
 
     public static PessoaResponse PreencherPessoaResponse(Pessoa pessoa){
@@ -27,6 +28,7 @@ public class PessoaResponse {
         response.setTelefone(pessoa.getTelefone());
         response.setCpf(pessoa.getCpf());
         response.setCategoria(pessoa.getCategoriaNome());
+        response.setCodigo_cota(pessoa.getCodigo_cota());
 
         return response;
     }
