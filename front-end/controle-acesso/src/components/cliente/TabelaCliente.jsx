@@ -1,4 +1,15 @@
+import { Button } from "../ui/button";
 import "./TabelaCliente.css"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from "@/components/ui/table";
+import { Dialog, DialogTrigger, DialogContent } from "../ui/dialog";
+import FormularioCliente from "./FormularioCliente";
 
 function TabelaClientes({clientes, onEditar, onExcluir}) {
 
@@ -7,60 +18,69 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
     };
 
     return (
-        <div className="tabela-container">
-            <table className="tabela-clientes">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Telefone</th>
-                        <th>Cidade</th>
-                        <th>Código da Cota</th>
-                        <th>Categoria</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+        
+        <Table className="mx-auto w-full table-fixed ">
+            <colgroup>
+                <col className="w-[20%]" /> {/* Nome */}
+                <col className="w-[14%]" /> {/* CPF */}
+                <col className="w-[12%]" /> {/* Telefone */}
+                <col className="w-[12%]" /> {/* Cidade */}
+                <col className="w-[12%]" /> {/* Código da Cota */}
+                <col className="w-[10%]" /> {/* Categoria */}
+                <col className="w-[20%]" /> {/* Ações */}
+            </colgroup>
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="whitespace-normal break-words">Nome</TableHead>
+                    <TableHead className="whitespace-normal break-words">CPF</TableHead>
+                    <TableHead className="whitespace-normal break-words">Telefone</TableHead>
+                    <TableHead className="whitespace-normal break-words">Cidade</TableHead>
+                    <TableHead className="whitespace-normal break-words">Código da Cota</TableHead>
+                    <TableHead className="whitespace-normal break-words">Categoria</TableHead>
+                    <TableHead className="whitespace-normal break-words">Ações</TableHead>
+                </TableRow>
+            </TableHeader>
 
-                <tbody>
-                    {clientes.map(cliente => (
-                        <tr key={cliente.id} className="linha-cliente">
-                            <td className="coluna-nome">{cliente.nome}</td>
-                            <td className="coluna-cpf">{cliente.cpf}</td>
-                            <td className="coluna-telefone">{cliente.telefone}</td>
-                            <td className="coluna-cidade">{cliente.cidade}</td>
-                            <td className="coluna-cota">{cliente.codigoDaCota}</td>
-                            <td className="coluna-categoria">{cliente.categoria}</td>
+            <TableBody>
+                {clientes.map(cliente => (
+                    <TableRow key={cliente.id} className="">
+                        <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
+                        <TableCell className="flex flex-wrap gap-2">
+                            <Dialog>
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    onClick={() => onEditar(cliente)}
+                                >
+                                    Editar
+                                </Button>
+                            </Dialog>
 
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => onExcluir(cliente)}
+                            >
+                                Excluir
+                            </Button>
 
-                            <td className="coluna-acoes">
-                                <div className="acoes-cliente">
-                                    <button
-                                        className="botao-acao botao-editar"
-                                        onClick={() => onEditar(cliente)}
-                                    >
-                                        Editar
-                                    </button>
-
-                                    <button
-                                        className="botao-acao botao-excluir"
-                                        onClick={() => onExcluir(cliente)}
-                                    >
-                                        Excluir
-                                    </button>
-
-                                    <button
-                                        className="botao-acao botao-entrada"
-                                        onClick={() => registrarEntrada(cliente)}
-                                    >
-                                        Registrar entrada
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                            <Button
+                                size="sm"
+                                onClick={() => registrarEntrada(cliente)}
+                            >
+                                Registrar entrada
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+        
     );
 
 
