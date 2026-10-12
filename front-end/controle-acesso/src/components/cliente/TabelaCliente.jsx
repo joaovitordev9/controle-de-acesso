@@ -53,7 +53,7 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                         <TableCell className="flex flex-wrap gap-2">
                             <Dialog>
                                 <Button
-                                    variant="link"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => onEditar(cliente)}
                                 >
