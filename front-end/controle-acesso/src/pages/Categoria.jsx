@@ -67,7 +67,7 @@ function Categorias() {
     }
 
     return (
-        <main>
+        <main className="min-w-0 flex-1 p-8">
             <h1 className="text-2xl font-semibold">Categorias</h1>
 
             <p className="mt-1 text-sm text-muted-foreground">

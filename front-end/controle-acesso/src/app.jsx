@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Categorias from "./pages/Categoria.jsx";
 import { Settings } from "lucide-react";
 import Clientes from "./pages/Cliente";
+import Relatorio from "./pages/Relatorio.jsx";
 
 
 
@@ -35,6 +36,12 @@ function App() {
                         >
                             Categorias
                         </Button>
+                        <Button
+                            variant={paginaAtual === "relatorios" ? "secondary" : "ghost"}
+                            onClick={() => setPaginaAtual("relatorios")}
+                        >
+                            Relatórios
+                        </Button>
                     </nav>
                     {<details className="fixed right-4 top-4 z-50">
                         <summary
@@ -65,6 +72,9 @@ function App() {
 
                 <div className={paginaAtual === "categorias" ? "block" : "hidden"}>
                     <Categorias />
+                </div>
+                <div className={paginaAtual === "relatorios" ? "block" : "hidden"}>
+                    <Relatorio />
                 </div>
             </div>
         </div>
