@@ -66,10 +66,6 @@ function Relatorio() {
                 <h1 className="text-2xl font-bold tracking-tight">
                     Relatório de entradas
                 </h1>
-
-                <p className="text-sm text-muted-foreground">
-                    Consulte as entradas registradas no clube.
-                </p>
             </div>
 
             {/* Filtro de data */}
