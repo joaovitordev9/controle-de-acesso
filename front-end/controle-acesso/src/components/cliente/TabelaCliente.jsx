@@ -13,13 +13,32 @@ import FormularioCliente from "./FormularioCliente";
 
 function TabelaClientes({clientes, onEditar, onExcluir}) {
 
-    const registrarEntrada = (cliente) => {
-        console.log("Registrar entrada:", cliente);
+    const registrarEntrada = async (cliente) => {
+        try {
+            const resposta = await fetch("http://localhost:8080/entradas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    pessoa_id: cliente.id,
+                }),
+            });
+
+            if (!resposta.ok) {
+                throw new Error(`Erro ao registrar entrada: ${resposta.status}`);
+            }
+
+            const entrada = await resposta.json();
+            console.log("Entrada registrada:", entrada);
+        } catch (erro) {
+            console.error("Não foi possível registrar a entrada:", erro);
+        }
     };
 
     return (
         <div className="overflow-hidden rounded-xl border">
-            
+
             <Table className="mx-auto w-full table-fixed ">
                 <colgroup>
                     <col className="w-[20%]" /> {/* Nome */}
@@ -42,46 +61,45 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                     </TableRow>
                 </TableHeader>
 
-                <TableBody>
-                    {clientes.map(cliente => (
-                        <TableRow key={cliente.id} className="">
-                            <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
-                            <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
-                            <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
-                            <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
-                            <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
-                            <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
-                            <TableCell className="flex flex-wrap gap-2">
-                                <Dialog>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => onEditar(cliente)}
-                                    >
-                                        Editar
-                                    </Button>
-                                </Dialog>
-
+            <TableBody>
+                {clientes.map(cliente => (
+                    <TableRow key={cliente.id} className="">
+                        <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
+                        <TableCell className="flex flex-wrap gap-2">
+                            <Dialog>
                                 <Button
-                                    variant="destructive"
+                                    variant="outline"
                                     size="sm"
-                                    onClick={() => onExcluir(cliente)}
+                                    onClick={() => onEditar(cliente)}
                                 >
-                                    Excluir
+                                    Editar
                                 </Button>
+                            </Dialog>
 
-                                <Button
-                                    size="sm"
-                                    onClick={() => registrarEntrada(cliente)}
-                                >
-                                    Registrar entrada
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => onExcluir(cliente)}
+                            >
+                                Excluir
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                onClick={() => registrarEntrada(cliente)}
+                            >
+                                Registrar entrada
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
         
     );
 
