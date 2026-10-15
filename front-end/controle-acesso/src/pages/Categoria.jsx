@@ -60,39 +60,43 @@ function Categorias() {
         const nome = nomeCategoria.trim();
         if (!nome) return;
 
-        if (categoriaEditando) {
-            try {
-                const resposta = await fetch(
-                    `http://localhost:8080/categorias/${categoriaEditando.id}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ nome }),
-                    }
+        const editando = categoriaEditando !== null;
+        const url = editando
+            ? `http://localhost:8080/categorias/${categoriaEditando.id}`
+            : "http://localhost:8080/categorias";
+
+        try {
+            const resposta = await fetch(url, {
+                method: editando ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ nome }),
+            });
+
+            if (!resposta.ok) {
+                throw new Error(
+                    `Erro ao ${editando ? "editar" : "cadastrar"} categoria: ${resposta.status}`
                 );
+            }
 
-                if (!resposta.ok) {
-                    throw new Error(`Erro ao editar categoria: ${resposta.status}`);
-                }
+            const categoriaSalva = await resposta.json();
 
-                const categoriaAtualizada = await resposta.json();
-
+            if (editando) {
                 setCategorias((lista) =>
                     lista.map((categoria) =>
-                        categoria.id === categoriaAtualizada.id
-                            ? categoriaAtualizada
+                        categoria.id === categoriaSalva.id
+                            ? categoriaSalva
                             : categoria
                     )
                 );
-
-                cancelarCadastro();
-            } catch (erro) {
-                console.error("Erro ao editar categoria:", erro);
+            } else {
+                setCategorias((lista) => [...lista, categoriaSalva]);
             }
 
-            return;
+            cancelarCadastro();
+        } catch (erro) {
+            console.error("Erro ao salvar categoria:", erro);
         }
     }
 
@@ -100,11 +104,27 @@ function Categorias() {
         setCategoriaExcluindo(null);
     }
 
-    function confirmarExclusao() {
-        setCategorias((lista) =>
-            lista.filter((categoria) => categoria.id !== categoriaExcluindo.id)
-        );
-        cancelarExclusao();
+    async function confirmarExclusao() {
+        if (!categoriaExcluindo) return;
+
+        try {
+            const resposta = await fetch(
+                `http://localhost:8080/categorias/${categoriaExcluindo.id}`,
+                { method: "DELETE" }
+            );
+
+            if (!resposta.ok) {
+                throw new Error(`Erro ao excluir categoria: ${resposta.status}`);
+            }
+
+            setCategorias((lista) =>
+                lista.filter((categoria) => categoria.id !== categoriaExcluindo.id)
+            );
+
+            cancelarExclusao();
+        } catch (erro) {
+            console.error("Erro ao excluir categoria:", erro);
+        }
     }
 
     return (

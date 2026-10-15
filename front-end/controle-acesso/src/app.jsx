@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Categorias from "./pages/Categoria.jsx";
 import { Settings } from "lucide-react";
 import Clientes from "./pages/Cliente";
+import Relatorio from "./pages/Relatorio.jsx";
 
 
 

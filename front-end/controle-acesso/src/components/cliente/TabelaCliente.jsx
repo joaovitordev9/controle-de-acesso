@@ -100,10 +100,10 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                 ))}
             </TableBody>
         </Table>
-        
-    );
+        </div>
+            );
+            }
 
 
-}
 
 export default TabelaClientes;
