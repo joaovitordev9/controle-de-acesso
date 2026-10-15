@@ -85,18 +85,47 @@ function Relatorio() {
             </div>
 
             {/* Total de entradas */}
-            <div className="rounded-xl border bg-card p-5">
-                <p className="text-sm text-muted-foreground">
-                    Total de entradas no dia
-                </p>
+            <div className="flex justify-between">
+                <div className="rounded-xl border bg-card p-5">
+                    <p className="text-sm text-muted-foreground">
+                        Total de entradas no dia
+                    </p>
 
-                <p className="mt-2 text-3xl font-bold">
-                    {entradas.length}
-                </p>
+                    <p className="mt-2 text-3xl font-bold">
+                        {entradas.length}
+                    </p>
 
-                <p className="mt-1 text-xs text-muted-foreground">
-                    Pessoas registradas na data selecionada
-                </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        Pessoas registradas na data selecionada
+                    </p>
+                </div>
+                {/* Gráfico de pizza */}
+                <div className="rounded-xl border bg-card p-5">
+                    <h2 className="font-semibold">
+                        Entradas por categoria
+                    </h2>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Distribuição de pessoas no clube
+                    </p>
+
+                {/* Gráfico aqui */}
+                </div>
+
+                {/* Horário de pico */}
+                <div className="rounded-xl border bg-card p-5">
+                    <h2 className="font-semibold">
+                        Horário de pico
+                    </h2>
+
+                    <p className="mt-2 text-3xl font-bold">
+                        15:00
+                    </p>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        Horário com maior número de entradas
+                    </p>
+                </div>
             </div>
 
             {/* Tabela */}
