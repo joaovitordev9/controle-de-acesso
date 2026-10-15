@@ -9,6 +9,7 @@ import br.com.club.controle_acesso.repository.EntradaRepository;
 import br.com.club.controle_acesso.repository.PessoaRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -36,6 +37,8 @@ public class EntradaService {
         Entrada entrada = new Entrada();
 
         entrada.setPessoa(pessoa);
+
+        entrada.setData_entrada(LocalDateTime.now());
 
         entrada = entradaRepository.save(entrada);
 

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
     AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,} from "@/components/ui/alert-dialog";
 import {Table, TableHeader, TableBody, TableHead, TableRow, TableCell,} from "@/components/ui/table";
-import {useState} from "react";
+import { useEffect, useState } from "react";
 
 function Categorias() {
     const [formularioAberto, setFormularioAberto] = useState(false);
@@ -14,6 +14,25 @@ function Categorias() {
     const [busca, setBusca] = useState("");
     const [categorias, setCategorias] = useState([]);
     const [nomeCategoria, setNomeCategoria] = useState("");
+
+    useEffect(() => {
+        async function carregarCategorias() {
+            try {
+                const resposta = await fetch("http://localhost:8080/categorias");
+
+                if (!resposta.ok) {
+                    throw new Error(`Erro ao carregar categorias: ${resposta.status}`);
+                }
+
+                const categoriasDoBanco = await resposta.json();
+                setCategorias(categoriasDoBanco);
+            } catch (erro) {
+                console.error("Erro ao carregar categorias:", erro);
+            }
+        }
+
+        carregarCategorias();
+    }, []);
 
     const categoriasFiltradas = categorias.filter((categoria) =>
         categoria.nome.toLowerCase().includes(busca.trim().toLowerCase())
@@ -35,35 +54,77 @@ function Categorias() {
         setNomeCategoria("");
     }
 
-    function salvarCategoria(evento) {
+    async function salvarCategoria(evento) {
         evento.preventDefault();
 
         const nome = nomeCategoria.trim();
         if (!nome) return;
 
-        if (categoriaEditando) {
-            setCategorias((lista) =>
-                lista.map((categoria) =>
-                    categoria.id === categoriaEditando.id
-                        ? { ...categoria, nome }
-                        : categoria
-                )
-            );
-        } else {
-            setCategorias((lista) => [...lista, { id: Date.now(), nome }]);
+        const editando = categoriaEditando !== null;
+        const url = editando
+            ? `http://localhost:8080/categorias/${categoriaEditando.id}`
+            : "http://localhost:8080/categorias";
+
+        try {
+            const resposta = await fetch(url, {
+                method: editando ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ nome }),
+            });
+
+            if (!resposta.ok) {
+                throw new Error(
+                    `Erro ao ${editando ? "editar" : "cadastrar"} categoria: ${resposta.status}`
+                );
+            }
+
+            const categoriaSalva = await resposta.json();
+
+            if (editando) {
+                setCategorias((lista) =>
+                    lista.map((categoria) =>
+                        categoria.id === categoriaSalva.id
+                            ? categoriaSalva
+                            : categoria
+                    )
+                );
+            } else {
+                setCategorias((lista) => [...lista, categoriaSalva]);
+            }
+
+            cancelarCadastro();
+        } catch (erro) {
+            console.error("Erro ao salvar categoria:", erro);
         }
-        cancelarCadastro();
     }
 
     function cancelarExclusao() {
         setCategoriaExcluindo(null);
     }
 
-    function confirmarExclusao() {
-        setCategorias((lista) =>
-            lista.filter((categoria) => categoria.id !== categoriaExcluindo.id)
-        );
-        cancelarExclusao();
+    async function confirmarExclusao() {
+        if (!categoriaExcluindo) return;
+
+        try {
+            const resposta = await fetch(
+                `http://localhost:8080/categorias/${categoriaExcluindo.id}`,
+                { method: "DELETE" }
+            );
+
+            if (!resposta.ok) {
+                throw new Error(`Erro ao excluir categoria: ${resposta.status}`);
+            }
+
+            setCategorias((lista) =>
+                lista.filter((categoria) => categoria.id !== categoriaExcluindo.id)
+            );
+
+            cancelarExclusao();
+        } catch (erro) {
+            console.error("Erro ao excluir categoria:", erro);
+        }
     }
 
     return (

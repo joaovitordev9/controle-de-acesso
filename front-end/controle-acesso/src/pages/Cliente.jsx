@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TabelaCliente from "../components/cliente/TabelaCliente";
 import FormularioCliente from "../components/cliente/FormularioCliente";
 import ModalConfirmarExclusao from "../components/cliente/ModalConfirmarExclusao";
@@ -7,23 +7,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Clientes = function Clientes() {
-        
-    const clientesIniciais = [
-        {
-            id: 1,
-            nome: "Carlos Eduardo Martins",
-            cpf: "123.456.789-09",
-            telefone: "(37) 99123-4567",
-            cidade: "Formiga",
-            codigoDaCota: "A15",
-            categoria: "Sócio"
-        }
-    ];
-    const [clientes, setClientes] = useState( clientesIniciais);
+
+    const [clientes, setClientes] = useState([]);
     const [clienteExcluindo, setClienteExcluindo] = useState(null);
     const [formularioAberto, setFormularioAberto] = useState(false);
     const [clienteEditando, setClienteEditando] = useState(null);
     const [busca, setBusca] = useState("");
+
+    useEffect(() => {
+        async function carregarClientes() {
+            try {
+                const resposta = await fetch("http://localhost:8080/pessoas");
+
+                if (!resposta.ok) {
+                    throw new Error(`Erro ao carregar pessoas: ${resposta.status}`);
+                }
+
+                const pessoas = await resposta.json();
+
+                setClientes(
+                    pessoas.map((pessoa) => ({
+                        id: pessoa.id,
+                        nome: pessoa.nome,
+                        cpf: pessoa.cpf,
+                        telefone: pessoa.telefone,
+                        cidade: pessoa.cidade,
+                        codigoDaCota: pessoa.codigo_cota ?? "",
+                        categoria: pessoa.categoria,
+                    }))
+                );
+            } catch (erro) {
+                console.error("Erro ao carregar clientes:", erro);
+            }
+        }
+
+        carregarClientes();
+    }, []);
 
     const clientesFiltrados = clientes.filter(function (cliente) {
         const cpfBusca = busca.replace(/\D/g, "");
@@ -32,45 +51,67 @@ const Clientes = function Clientes() {
         return (
             cliente.nome.toLowerCase().includes(busca.toLowerCase()) ||
             (cpfBusca !== "" && cpfCliente.includes(cpfBusca)) ||
-            cliente.codigoDaCota.includes(busca)
+            String(cliente.codigoDaCota ?? "").includes(busca)
         );
     });
 
+    async function salvarCliente(dados) {
+        const dadosParaEnviar = {
+            nome: dados.nome,
+            cidade: dados.cidade,
+            telefone: dados.telefone,
+            cpf: dados.cpf,
+            codigo_cota: Number(dados.codigoDaCota),
+            categoria_id: Number(dados.categoria),
+        };
 
-    function salvarCliente(dados) {
-        if (clienteEditando === null) {
-            // Cadastro de um novo cliente
-            const novoCliente = {
-                ...dados,
-                id: Date.now()
+        try {
+            const editando = clienteEditando !== null;
+            const url = editando
+                ? `http://localhost:8080/pessoas/${clienteEditando.id}`
+                : "http://localhost:8080/pessoas";
+
+            const resposta = await fetch(url, {
+                method: editando ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(dadosParaEnviar),
+            });
+
+            if (!resposta.ok) {
+                throw new Error(
+                    `Erro ao ${editando ? "editar" : "cadastrar"} pessoa: ${resposta.status}`
+                );
+            }
+
+            const pessoa = await resposta.json();
+
+            const clienteAtualizado = {
+                id: pessoa.id,
+                nome: pessoa.nome,
+                cpf: pessoa.cpf,
+                telefone: pessoa.telefone,
+                cidade: pessoa.cidade,
+                codigoDaCota: pessoa.codigo_cota,
+                categoria: pessoa.categoria,
             };
 
-            setClientes(function (listaAtual) {
-                return [...listaAtual, novoCliente];
-            });
+            if (editando) {
+                setClientes((listaAtual) =>
+                    listaAtual.map((cliente) =>
+                        cliente.id === pessoa.id ? clienteAtualizado : cliente
+                    )
+                );
+            } else {
+                setClientes((listaAtual) => [...listaAtual, clienteAtualizado]);
+            }
 
-            console.log("Cliente cadastrado:", novoCliente);
-
-        } else {
-            // Edição de um cliente existente
-            setClientes(function (listaAtual) {
-                return listaAtual.map(function (cliente) {
-                    if (cliente.id === clienteEditando.id) {
-                        return {
-                            ...cliente,
-                            ...dados
-                        };
-                    }
-
-                    return cliente;
-                });
-            });
-
-            console.log("Cliente editado:", dados);
+            setFormularioAberto(false);
+            setClienteEditando(null);
+        } catch (erro) {
+            console.error("Erro ao salvar cliente:", erro);
         }
-
-        setFormularioAberto(false);
-        setClienteEditando(null);
     }
 
     function editarCliente(cliente) {
@@ -86,14 +127,25 @@ const Clientes = function Clientes() {
         setClienteExcluindo(null);
     }
 
-    function confirmarExclusao(cliente) {
-        setClientes(function (listaAtual) {
-            return listaAtual.filter(function (item) {
-                return item.id !== cliente.id;
-            });
-        });
+    async function confirmarExclusao(cliente) {
+        try {
+            const resposta = await fetch(
+                `http://localhost:8080/pessoas/${cliente.id}`,
+                { method: "DELETE" }
+            );
 
-        setClienteExcluindo(null);
+            if (!resposta.ok) {
+                throw new Error(`Erro ao excluir pessoa: ${resposta.status}`);
+            }
+
+            setClientes((listaAtual) =>
+                listaAtual.filter((item) => item.id !== cliente.id)
+            );
+
+            setClienteExcluindo(null);
+        } catch (erro) {
+            console.error("Erro ao excluir cliente:", erro);
+        }
     }
 
     function cancelarCadastro() {

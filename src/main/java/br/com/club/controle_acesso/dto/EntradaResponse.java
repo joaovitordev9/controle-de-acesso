@@ -21,6 +21,8 @@ public class EntradaResponse {
 
         EntradaResponse entradaResponse = new EntradaResponse();
 
+        entradaResponse.setId(entrada.getId());
+        entradaResponse.setData_entrada(entrada.getData_entrada());
         entradaResponse.setId_pessoa(entrada.getEntradaId());
         entradaResponse.setNome(entrada.getEntradaNome());
         entradaResponse.setCategoria(entrada.getCategoria());
