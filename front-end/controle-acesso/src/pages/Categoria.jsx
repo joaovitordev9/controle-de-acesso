@@ -119,53 +119,56 @@ function Categorias() {
                     </form>
                 </DialogContent>
             </Dialog>
-            <Table className="table-fixed">
-                <colgroup>
-                    <col className="w-2/3" />
-                    <col className="w-1/3" />
-                </colgroup>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead className="text-center">Ações</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {categoriasFiltradas.length === 0 ? (
+
+            <div className="overflow-hidden rounded-xl border">
+                <Table className="table-fixed">
+                    <colgroup>
+                        <col className="w-2/3" />
+                        <col className="w-1/3" />
+                    </colgroup>
+                    <TableHeader>
                         <TableRow>
-                            <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">
-                                {busca ? "Nenhuma categoria encontrada." : "Nenhuma categoria cadastrada."}
-                            </TableCell>
+                            <TableHead>Nome</TableHead>
+                            <TableHead className="text-center">Ações</TableHead>
                         </TableRow>
-                    ) : (
-                        categoriasFiltradas.map((categoria) => (
-                            <TableRow key={categoria.id}>
-                                <TableCell>{categoria.nome}</TableCell>
-
-                                <TableCell>
-                                    <div className="flex justify-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => editarCategoria(categoria)}
-                                        >
-                                            Editar
-                                        </Button>
-
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => iniciarExclusao(categoria)}
-                                        >
-                                            Excluir
-                                        </Button>
-                                    </div>
+                    </TableHeader>
+                    <TableBody>
+                        {categoriasFiltradas.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">
+                                    {busca ? "Nenhuma categoria encontrada." : "Nenhuma categoria cadastrada."}
                                 </TableCell>
                             </TableRow>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
+                        ) : (
+                            categoriasFiltradas.map((categoria) => (
+                                <TableRow key={categoria.id}>
+                                    <TableCell>{categoria.nome}</TableCell>
+
+                                    <TableCell>
+                                        <div className="flex justify-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => editarCategoria(categoria)}
+                                            >
+                                                Editar
+                                            </Button>
+
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => iniciarExclusao(categoria)}
+                                            >
+                                                Excluir
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
             <AlertDialog
                 open={Boolean(categoriaExcluindo)}
                 onOpenChange={(aberto) => {
