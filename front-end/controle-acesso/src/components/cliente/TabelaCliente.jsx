@@ -62,16 +62,43 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                 </TableHeader>
 
             <TableBody>
-                {clientes.map(cliente => (
-                    <TableRow key={cliente.id} className="">
-                        <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
-                        <TableCell className="flex flex-wrap gap-2">
-                            <Dialog>
+                {clientes.length === 0 ? (
+                    <TableRow>
+                        <TableCell
+                            colSpan={7}
+                            className="h-24 text-center text-muted-foreground"
+                        >
+                            Nenhum cliente cadastrado.
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    clientes.map(cliente => (
+                        <TableRow key={cliente.id}>
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.nome}
+                            </TableCell>
+
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.cpf}
+                            </TableCell>
+
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.telefone}
+                            </TableCell>
+
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.cidade}
+                            </TableCell>
+
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.codigoDaCota}
+                            </TableCell>
+
+                            <TableCell className="whitespace-normal break-words">
+                                {cliente.categoria}
+                            </TableCell>
+
+                            <TableCell className="flex flex-wrap gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -79,25 +106,25 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                                 >
                                     Editar
                                 </Button>
-                            </Dialog>
 
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => onExcluir(cliente)}
-                            >
-                                Excluir
-                            </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => onExcluir(cliente)}
+                                >
+                                    Excluir
+                                </Button>
 
-                            <Button
-                                size="sm"
-                                onClick={() => registrarEntrada(cliente)}
-                            >
-                                Registrar entrada
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                ))}
+                                <Button
+                                    size="sm"
+                                    onClick={() => registrarEntrada(cliente)}
+                                >
+                                    Registrar entrada
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                )}
             </TableBody>
         </Table>
         </div>
