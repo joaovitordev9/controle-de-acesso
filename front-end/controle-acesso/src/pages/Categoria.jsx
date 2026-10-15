@@ -67,14 +67,15 @@ function Categorias() {
     }
 
     return (
-        <main className="min-w-0 flex-1 p-8">
-            <h1 className="text-2xl font-semibold">Categorias</h1>
+        <main className="min-w-0 flex-1 p-8 space-y-6">
+            <div>
+                <h1 className="text-2xl font-semibold">Categorias</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Gerencie as categorias usadas nos cadastros.
+                </p>
+            </div>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-                Gerencie as categorias usadas nos cadastros.
-            </p>
-
-            <div className="mt-4 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Input
                     className="sm:w-80"
                     placeholder="Buscar categoria..."

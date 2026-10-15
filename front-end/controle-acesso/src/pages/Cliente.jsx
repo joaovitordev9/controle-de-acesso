@@ -103,7 +103,7 @@ const Clientes = function Clientes() {
     }
 
     return (
-        <main className="min-w-0 flex-1 p-8">
+        <main className="min-w-0 flex-1 p-8 space-y-6">
             <Dialog open={formularioAberto} onOpenChange={setFormularioAberto}>
                 <DialogContent className="sm:max-w-2xl">
                     <FormularioCliente
@@ -114,13 +114,13 @@ const Clientes = function Clientes() {
                 </DialogContent>
             </Dialog>
 
-            <h1 className="mb-6 text-2xl font-semibold">
+            <h1 className="text-2xl font-semibold">
                 Clientes
             </h1>
 
-            <div className="flex items-center gap-4 border-b pb-4">
+            <div className="flex items-center gap-4">
                 <Input
-                    className="h-10 w-110"
+                    className=" w-110"
                     type="text"
                     placeholder="Buscar por nome, CPF ou código da cota..."
                     value={busca}
@@ -130,7 +130,7 @@ const Clientes = function Clientes() {
                 />
 
                 <Button
-                    className="h-10 whitespace-nowrap"
+                    className=" whitespace-nowrap"
                     onClick={function () {
                         setClienteEditando(null);
                         setFormularioAberto(true);
