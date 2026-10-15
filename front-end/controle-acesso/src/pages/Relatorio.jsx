@@ -135,7 +135,7 @@ function Relatorio() {
             {/* Tabela */}
             <div className="overflow-hidden rounded-xl border">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted">
                         <TableRow>
                             <TableHead>Nome</TableHead>
                             <TableHead>Categoria</TableHead>

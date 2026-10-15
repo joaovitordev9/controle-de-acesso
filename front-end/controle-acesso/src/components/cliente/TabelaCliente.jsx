@@ -30,7 +30,7 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                     <col className="w-[10%]" /> {/* Categoria */}
                     <col className="w-[20%]" /> {/* Ações */}
                 </colgroup>
-                <TableHeader>
+                <TableHeader className="bg-muted">
                     <TableRow>
                         <TableHead className="whitespace-normal break-words">Nome</TableHead>
                         <TableHead className="whitespace-normal break-words">CPF</TableHead>
