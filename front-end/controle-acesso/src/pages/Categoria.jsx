@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
     AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,} from "@/components/ui/alert-dialog";
 import {Table, TableHeader, TableBody, TableHead, TableRow, TableCell,} from "@/components/ui/table";
-import {useState} from "react";
+import { useEffect, useState } from "react";
 
 function Categorias() {
     const [formularioAberto, setFormularioAberto] = useState(false);
@@ -14,6 +14,25 @@ function Categorias() {
     const [busca, setBusca] = useState("");
     const [categorias, setCategorias] = useState([]);
     const [nomeCategoria, setNomeCategoria] = useState("");
+
+    useEffect(() => {
+        async function carregarCategorias() {
+            try {
+                const resposta = await fetch("http://localhost:8080/categorias");
+
+                if (!resposta.ok) {
+                    throw new Error(`Erro ao carregar categorias: ${resposta.status}`);
+                }
+
+                const categoriasDoBanco = await resposta.json();
+                setCategorias(categoriasDoBanco);
+            } catch (erro) {
+                console.error("Erro ao carregar categorias:", erro);
+            }
+        }
+
+        carregarCategorias();
+    }, []);
 
     const categoriasFiltradas = categorias.filter((categoria) =>
         categoria.nome.toLowerCase().includes(busca.trim().toLowerCase())
@@ -35,24 +54,46 @@ function Categorias() {
         setNomeCategoria("");
     }
 
-    function salvarCategoria(evento) {
+    async function salvarCategoria(evento) {
         evento.preventDefault();
 
         const nome = nomeCategoria.trim();
         if (!nome) return;
 
         if (categoriaEditando) {
-            setCategorias((lista) =>
-                lista.map((categoria) =>
-                    categoria.id === categoriaEditando.id
-                        ? { ...categoria, nome }
-                        : categoria
-                )
-            );
-        } else {
-            setCategorias((lista) => [...lista, { id: Date.now(), nome }]);
+            try {
+                const resposta = await fetch(
+                    `http://localhost:8080/categorias/${categoriaEditando.id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ nome }),
+                    }
+                );
+
+                if (!resposta.ok) {
+                    throw new Error(`Erro ao editar categoria: ${resposta.status}`);
+                }
+
+                const categoriaAtualizada = await resposta.json();
+
+                setCategorias((lista) =>
+                    lista.map((categoria) =>
+                        categoria.id === categoriaAtualizada.id
+                            ? categoriaAtualizada
+                            : categoria
+                    )
+                );
+
+                cancelarCadastro();
+            } catch (erro) {
+                console.error("Erro ao editar categoria:", erro);
+            }
+
+            return;
         }
-        cancelarCadastro();
     }
 
     function cancelarExclusao() {

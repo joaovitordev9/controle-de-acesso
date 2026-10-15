@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -9,18 +9,42 @@ import { DialogHeader, DialogTitle, DialogDescription, DialogClose} from "../ui/
 
 function FormularioCliente({ cliente, onSalvar, onCancelar }) {
 
+    const [categorias, setCategorias] = useState([]);
+
+    useEffect(() => {
+        async function carregarCategorias() {
+            try {
+                const resposta = await fetch("http://localhost:8080/categorias");
+
+                if (!resposta.ok) {
+                    throw new Error("Não foi possível carregar as categorias.");
+                }
+
+                const dados = await resposta.json();
+                setCategorias(dados);
+            } catch (erro) {
+                console.error("Erro ao carregar categorias:", erro);
+            }
+        }
+
+        carregarCategorias();
+    }, []);
+
     const [dados, setDados] = useState({
         nome: cliente ? cliente.nome || "" : "",
         cpf: cliente ? cliente.cpf || "" : "",
         telefone: cliente ? cliente.telefone || "" : "",
         cidade: cliente ? cliente.cidade || "" : "",
         codigoDaCota: cliente ? cliente.codigoDaCota || "" : "",
-        categoria: cliente ? cliente.categoria || "Sócio" : "Sócio"
+        categoria: cliente ? cliente.categoria || "" : ""
     });
 
     function atualizarCampo(evento) {
         const nomeCampo = evento.target.name;
-        const valorCampo = evento.target.value;
+        const valorCampo =
+            nomeCampo === "codigoDaCota" && evento.target.value !== ""
+                ? Number(evento.target.value)
+                : evento.target.value;
 
         setDados({
             ...dados,
@@ -110,12 +134,15 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
                     <Label htmlFor="codigoDaCota">Código da cota</Label>
 
                     <Input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="1"
+                        required
                         id="codigoDaCota"
                         name="codigoDaCota"
                         value={dados.codigoDaCota}
                         onChange={atualizarCampo}
-                        placeholder="Ex.: A15"
+                        placeholder="Ex.: 151515"
                     />
                 </div>
 
@@ -138,9 +165,14 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
                         </SelectTrigger>
 
                         <SelectContent>
-                            <SelectItem value="Sócio">Sócio</SelectItem>
-                            <SelectItem value="Dependente">Dependente</SelectItem>
-                            <SelectItem value="Visitante">Visitante</SelectItem>
+                            {categorias.map((categoria) => (
+                                <SelectItem
+                                    key={categoria.id}
+                                    value={String(categoria.id)}
+                                >
+                                    {categoria.nome}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -157,11 +189,10 @@ function FormularioCliente({ cliente, onSalvar, onCancelar }) {
                         Cancelar
                     </Button>
                 </DialogClose>
-                <DialogClose>
-                    <Button type="submit">
-                        {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
-                    </Button>
-                </DialogClose>
+
+                <Button type="submit">
+                    {cliente ? "Salvar alterações" : "Cadastrar pessoa"}
+                </Button>
             </div>
 
         </form>
