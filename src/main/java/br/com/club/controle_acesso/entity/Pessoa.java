@@ -24,9 +24,10 @@ public class Pessoa {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
-    public String getCategoriaNome(){
-        return categoria.getNome();
+    public String getCategoriaNome() {
+        return categoria == null ? "Sem categoria" : categoria.getNome();
     }
+
 
 
 
