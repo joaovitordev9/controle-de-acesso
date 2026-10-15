@@ -6,43 +6,57 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table";
-
-
-const entradas = [
-    {
-        id: 1,
-        nome: "João da Silva",
-        categoria: "Sócio",
-        horario: "08:15",
-    },
-    {
-        id: 2,
-        nome: "Maria Oliveira",
-        categoria: "Dependente",
-        horario: "09:30",
-    },
-    {
-        id: 3,
-        nome: "Pedro Santos",
-        categoria: "Visitante",
-        horario: "10:45",
-    },
-    {
-        id: 4,
-        nome: "Ana Costa",
-        categoria: "Sócio",
-        horario: "11:20",
-    },
-    {
-        id: 5,
-        nome: "Lucas Ferreira",
-        categoria: "Dependente",
-        horario: "13:10",
-    },
-];
+import { useEffect, useState } from "react";
 
 function Relatorio() {
-    const today = new Date().toISOString().split("T")[0];
+    const [entradas, setEntradas] = useState([]);
+    const hoje = new Date();
+    const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+
+    const [dataSelecionada, setDataSelecionada] = useState(dataHoje);
+    const [dataFiltro, setDataFiltro] = useState(dataHoje);
+
+    const entradasFiltradas = entradas.filter(
+        (entrada) => entrada.data_entrada?.slice(0, 10) === dataFiltro
+    );
+    const contagemPorHora = entradasFiltradas.reduce((contagem, entrada) => {
+        const hora = entrada.data_entrada?.slice(11, 13);
+
+        if (hora) {
+            contagem[hora] = (contagem[hora] || 0) + 1;
+        }
+
+        return contagem;
+    }, {});
+
+    const horaPico = Object.entries(contagemPorHora).reduce(
+        (maior, atual) => (!maior || atual[1] > maior[1] ? atual : maior),
+        null
+    );
+
+    const horarioPico = horaPico
+        ? `${Number(horaPico[0])}:00`
+        : "Sem entradas";
+
+    useEffect(() => {
+        async function carregarEntradas() {
+            try {
+                const resposta = await fetch("http://localhost:8080/entradas");
+
+                if (!resposta.ok) {
+                    throw new Error(`Erro ao carregar entradas: ${resposta.status}`);
+                }
+
+                const dados = await resposta.json();
+                setEntradas(dados);
+            } catch (erro) {
+                console.error("Erro ao carregar entradas:", erro);
+            }
+        }
+
+        carregarEntradas();
+    }, []);
+
 
     return (
         <main className="min-w-0 flex-1 p-8 space-y-6">
@@ -71,7 +85,8 @@ function Relatorio() {
                     <input
                         type="date"
                         id="data"
-                        defaultValue={today}
+                        value={dataSelecionada}
+                        onChange={(evento) => setDataSelecionada(evento.target.value)}
                         className="h-10 rounded-md border bg-background px-3 text-sm"
                     />
                 </div>
@@ -79,6 +94,7 @@ function Relatorio() {
                 <button
                     type="button"
                     className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+                    onClick={() => setDataFiltro(dataSelecionada)}
                 >
                     Consultar
                 </button>
@@ -94,7 +110,7 @@ function Relatorio() {
                     </p>
 
                     <p className="mt-2 text-3xl font-bold">
-                        {entradas.length}
+                        {entradasFiltradas.length}
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -122,7 +138,7 @@ function Relatorio() {
                     </h2>
 
                     <p className="mt-2 text-3xl font-bold">
-                        15:00
+                        {horarioPico}
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -144,8 +160,8 @@ function Relatorio() {
                     </TableHeader>
 
                     <TableBody>
-                        {entradas.length > 0 ? (
-                            entradas.map(function (entrada) {
+                        {entradasFiltradas.length > 0 ? (
+                            entradasFiltradas.map(function (entrada) {
                                 return (
                                     <TableRow key={entrada.id}>
                                         <TableCell className="font-medium">
@@ -157,7 +173,10 @@ function Relatorio() {
                                         </TableCell>
 
                                         <TableCell>
-                                            {entrada.horario}
+                                            {new Date(entrada.data_entrada).toLocaleTimeString("pt-BR", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
                                         </TableCell>
                                     </TableRow>
                                 );

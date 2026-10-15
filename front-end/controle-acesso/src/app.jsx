@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import Categorias from "./pages/Categoria.jsx";
 import { Settings } from "lucide-react";
-import Clientes from "./pages/Cliente";
+import Categorias from "./pages/Categoria.jsx";
+import Clientes from "./pages/Cliente.jsx";
 import Relatorio from "./pages/Relatorio.jsx";
-
-
 
 function App() {
     const [paginaAtual, setPaginaAtual] = useState("clientes");
@@ -36,15 +34,16 @@ function App() {
                         >
                             Categorias
                         </Button>
+
                         <Button
                             variant={paginaAtual === "relatorio" ? "secondary" : "ghost"}
                             onClick={() => setPaginaAtual("relatorio")}
                         >
-                            Relatorio
+                            Relatório
                         </Button>
-
                     </nav>
-                    {<details className="fixed right-4 top-4 z-50">
+
+                    <details className="fixed right-4 top-4 z-50">
                         <summary
                             aria-label="Configurações"
                             title="Configurações"
@@ -62,22 +61,14 @@ function App() {
                                 {modoEscuro ? "Usar tema claro" : "Usar tema escuro"}
                             </Button>
                         </div>
-                    </details>}
+                    </details>
                 </div>
             </header>
 
             <div className="pt-14">
-                <div className={paginaAtual === "clientes" ? "block" : "hidden"}>
-                    <Clientes />
-                </div>
-
-                <div className={paginaAtual === "categorias" ? "block" : "hidden"}>
-                    <Categorias />
-                </div>
-
-                <div className={paginaAtual === "relatorio" ? "block" : "hidden"}>
-                    <Relatorio />
-                </div>
+                {paginaAtual === "clientes" && <Clientes />}
+                {paginaAtual === "categorias" && <Categorias />}
+                {paginaAtual === "relatorio" && <Relatorio />}
             </div>
         </div>
     );
