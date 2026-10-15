@@ -85,10 +85,12 @@ function Relatorio() {
             </div>
 
             {/* Total de entradas */}
-            <div className="flex justify-between">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+                {/* Total de entradas */}
                 <div className="rounded-xl border bg-card p-5">
                     <p className="text-sm text-muted-foreground">
-                        Total de entradas no dia
+                        Total de entradas
                     </p>
 
                     <p className="mt-2 text-3xl font-bold">
@@ -99,6 +101,7 @@ function Relatorio() {
                         Pessoas registradas na data selecionada
                     </p>
                 </div>
+
                 {/* Gráfico de pizza */}
                 <div className="rounded-xl border bg-card p-5">
                     <h2 className="font-semibold">
@@ -109,7 +112,7 @@ function Relatorio() {
                         Distribuição de pessoas no clube
                     </p>
 
-                {/* Gráfico aqui */}
+                    {/* Gráfico aqui */}
                 </div>
 
                 {/* Horário de pico */}
@@ -126,6 +129,7 @@ function Relatorio() {
                         Horário com maior número de entradas
                     </p>
                 </div>
+
             </div>
 
             {/* Tabela */}
