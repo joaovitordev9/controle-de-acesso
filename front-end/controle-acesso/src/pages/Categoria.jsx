@@ -126,7 +126,7 @@ function Categorias() {
                         <col className="w-2/3" />
                         <col className="w-1/3" />
                     </colgroup>
-                    <TableHeader>
+                    <TableHeader className="bg-muted">
                         <TableRow>
                             <TableHead>Nome</TableHead>
                             <TableHead className="text-center">Ações</TableHead>
