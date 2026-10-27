@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/controle_acesso
-    username: root
-    password: 0909
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/controle_acesso?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -15,6 +15,6 @@ spring:
 
 server:
   address: 0.0.0.0
-  port: 8080
+  port: 8485
 
 

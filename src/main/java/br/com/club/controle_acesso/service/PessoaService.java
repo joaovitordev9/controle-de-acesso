@@ -3,11 +3,15 @@ package br.com.club.controle_acesso.service;
 
 import br.com.club.controle_acesso.dto.PessoaRequest;
 import br.com.club.controle_acesso.dto.PessoaResponse;
-import br.com.club.controle_acesso.entity.Categoria;
 import br.com.club.controle_acesso.entity.Pessoa;
-import br.com.club.controle_acesso.repository.CategoriaRepository;
+import br.com.club.controle_acesso.entity.Socio;
+import br.com.club.controle_acesso.enums.Categoria;
+import br.com.club.controle_acesso.exception.RecursoNaoEncontradoException;
 import br.com.club.controle_acesso.repository.PessoaRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,11 +19,12 @@ import java.util.List;
 public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
-    private final CategoriaRepository categoriaRepository;
 
-    public PessoaService(PessoaRepository pessoaRepository, CategoriaRepository categoriaRepository) {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public PessoaService(PessoaRepository pessoaRepository) {
         this.pessoaRepository = pessoaRepository;
-        this.categoriaRepository = categoriaRepository;
     }
 
     public List<PessoaResponse> listarPessoas(){
@@ -35,27 +40,29 @@ public class PessoaService {
 
         pessoaRequest.preencherPessoa(pessoa);
 
-        Categoria categoria = categoriaRepository
-                .findById(pessoaRequest.getCategoria_id())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
-
-        pessoa.setCategoria(categoria);
-
         pessoa = pessoaRepository.save(pessoa);
 
         return PessoaResponse.PreencherPessoaResponse(pessoa);
     }
 
+    @Transactional
     public PessoaResponse alterarPessoa(Long id, PessoaRequest pessoaRequest){
-        Pessoa pessoa = pessoaRepository.findById(id).orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
+        Pessoa pessoa = pessoaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada"));
+
+        // Conversão: um sócio deixou de ser sócio (muda o discriminador e libera a cota).
+        if (pessoa instanceof Socio && pessoaRequest.getCategoria() != Categoria.SOCIO) {
+            entityManager.createNativeQuery(
+                            "UPDATE pessoa SET tipo_pessoa = 'PESSOA', cota_id = NULL, papel = NULL, diretor = FALSE WHERE id = :id")
+                    .setParameter("id", id)
+                    .executeUpdate();
+            entityManager.flush();
+            entityManager.clear();
+            pessoa = pessoaRepository.findById(id)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada"));
+        }
 
         pessoaRequest.preencherPessoa(pessoa);
-
-        Categoria categoria = categoriaRepository
-                .findById(pessoaRequest.getCategoria_id())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
-
-        pessoa.setCategoria(categoria);
 
         pessoa = pessoaRepository.save(pessoa);
 

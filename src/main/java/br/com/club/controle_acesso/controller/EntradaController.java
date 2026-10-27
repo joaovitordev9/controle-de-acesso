@@ -1,6 +1,8 @@
 package br.com.club.controle_acesso.controller;
 
 
+import br.com.club.controle_acesso.dto.ConviteEmUsoResponse;
+import br.com.club.controle_acesso.dto.EntradaDiretaRequest;
 import br.com.club.controle_acesso.dto.EntradaRequest;
 import br.com.club.controle_acesso.dto.EntradaResponse;
 import br.com.club.controle_acesso.service.EntradaService;
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/entradas")
 public class EntradaController {
@@ -25,9 +26,27 @@ public class EntradaController {
         return entradaService.listarEntradas();
     }
 
+    // Convites/cortesias que estão ocupados neste momento (aba Convites).
+    @GetMapping("/em-uso")
+    public List<ConviteEmUsoResponse> emUso(){
+        return entradaService.listarEmUso();
+    }
+
     @PostMapping
     public EntradaResponse cadastrar(@Valid @RequestBody EntradaRequest entradaRequest){
         return entradaService.cadastrarEntrada(entradaRequest);
+    }
+
+    // Entrada registrada direto na portaria (sem autorização prévia).
+    @PostMapping("/direta")
+    public EntradaResponse registrarDireta(@Valid @RequestBody EntradaDiretaRequest request){
+        return entradaService.registrarEntradaDireta(request);
+    }
+
+    // Libera o convite/cortesia que a pessoa ocupa (remove do "em uso").
+    @PostMapping("/{id}/liberar")
+    public void liberar(@PathVariable Long id){
+        entradaService.liberar(id);
     }
 
     @PutMapping("/{id}")
