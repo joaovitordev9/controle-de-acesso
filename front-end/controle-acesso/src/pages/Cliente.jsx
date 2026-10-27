@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import TabelaCliente from "../components/cliente/TabelaCliente";
 import FormularioCliente from "../components/cliente/FormularioCliente";
 import ModalConfirmarExclusao from "../components/cliente/ModalConfirmarExclusao";
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiGet, apiPost, apiPut, apiDelete } from "../services/api";
+
+// Remove acentos e caixa para que a busca encontre "Joao" em "João".
+const norm = (texto) =>
+    (texto ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 const Clientes = function Clientes() {
 
@@ -13,31 +18,27 @@ const Clientes = function Clientes() {
     const [formularioAberto, setFormularioAberto] = useState(false);
     const [clienteEditando, setClienteEditando] = useState(null);
     const [busca, setBusca] = useState("");
+    const [mensagemErro, setMensagemErro] = useState("");
+
+    function mapearCliente(pessoa) {
+        return {
+            id: pessoa.id,
+            nome: pessoa.nome,
+            cpf: pessoa.cpf,
+            telefone: pessoa.telefone,
+            cidade: pessoa.cidade,
+            codigoDaCota: pessoa.codigo_cota ?? "",
+            categoria: pessoa.categoria,
+        };
+    }
 
     useEffect(() => {
         async function carregarClientes() {
             try {
-                const resposta = await fetch("http://localhost:8080/pessoas");
-
-                if (!resposta.ok) {
-                    throw new Error(`Erro ao carregar pessoas: ${resposta.status}`);
-                }
-
-                const pessoas = await resposta.json();
-
-                setClientes(
-                    pessoas.map((pessoa) => ({
-                        id: pessoa.id,
-                        nome: pessoa.nome,
-                        cpf: pessoa.cpf,
-                        telefone: pessoa.telefone,
-                        cidade: pessoa.cidade,
-                        codigoDaCota: pessoa.codigo_cota ?? "",
-                        categoria: pessoa.categoria,
-                    }))
-                );
+                const pessoas = await apiGet("/pessoas");
+                setClientes(pessoas.map(mapearCliente));
             } catch (erro) {
-                console.error("Erro ao carregar clientes:", erro);
+                setMensagemErro(erro.message);
             }
         }
 
@@ -45,57 +46,51 @@ const Clientes = function Clientes() {
     }, []);
 
     const clientesFiltrados = clientes.filter(function (cliente) {
+        const termo = norm(busca);
         const cpfBusca = busca.replace(/\D/g, "");
-        const cpfCliente = cliente.cpf.replace(/\D/g, "");
-        
+        const cpfCliente = (cliente.cpf ?? "").replace(/\D/g, "");
+
         return (
-            cliente.nome.toLowerCase().includes(busca.toLowerCase()) ||
+            norm(cliente.nome).includes(termo) ||
             (cpfBusca !== "" && cpfCliente.includes(cpfBusca)) ||
             String(cliente.codigoDaCota ?? "").includes(busca)
         );
     });
 
     async function salvarCliente(dados) {
-        const dadosParaEnviar = {
+        setMensagemErro("");
+
+        const ehSocio = dados.categoria === "SOCIO";
+        const editando = clienteEditando !== null;
+
+        const corpoPessoa = {
             nome: dados.nome,
             cidade: dados.cidade,
             telefone: dados.telefone,
             cpf: dados.cpf,
-            codigo_cota: Number(dados.codigoDaCota),
-            categoria_id: Number(dados.categoria),
+            codigo_cota: dados.codigoDaCota ? String(dados.codigoDaCota) : null,
+            categoria: dados.categoria,
         };
 
+        const corpo = ehSocio
+            ? {
+                  ...corpoPessoa,
+                  categoria: "SOCIO",
+                  papel: dados.papel || "TITULAR",
+                  diretor: Boolean(dados.diretor),
+                  tem_convite_especial: Boolean(dados.temConviteEspecial),
+                  qtd_convite_especial: Number(dados.qtdConviteEspecial) || 0,
+              }
+            : corpoPessoa;
+
+        const recurso = ehSocio ? "socios" : "pessoas";
+
         try {
-            const editando = clienteEditando !== null;
-            const url = editando
-                ? `http://localhost:8080/pessoas/${clienteEditando.id}`
-                : "http://localhost:8080/pessoas";
+            const pessoa = editando
+                ? await apiPut(`/${recurso}/${clienteEditando.id}`, corpo)
+                : await apiPost(`/${recurso}`, corpo);
 
-            const resposta = await fetch(url, {
-                method: editando ? "PUT" : "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(dadosParaEnviar),
-            });
-
-            if (!resposta.ok) {
-                throw new Error(
-                    `Erro ao ${editando ? "editar" : "cadastrar"} pessoa: ${resposta.status}`
-                );
-            }
-
-            const pessoa = await resposta.json();
-
-            const clienteAtualizado = {
-                id: pessoa.id,
-                nome: pessoa.nome,
-                cpf: pessoa.cpf,
-                telefone: pessoa.telefone,
-                cidade: pessoa.cidade,
-                codigoDaCota: pessoa.codigo_cota,
-                categoria: pessoa.categoria,
-            };
+            const clienteAtualizado = mapearCliente(pessoa);
 
             if (editando) {
                 setClientes((listaAtual) =>
@@ -110,7 +105,7 @@ const Clientes = function Clientes() {
             setFormularioAberto(false);
             setClienteEditando(null);
         } catch (erro) {
-            console.error("Erro ao salvar cliente:", erro);
+            setMensagemErro(erro.message);
         }
     }
 
@@ -128,15 +123,9 @@ const Clientes = function Clientes() {
     }
 
     async function confirmarExclusao(cliente) {
+        setMensagemErro("");
         try {
-            const resposta = await fetch(
-                `http://localhost:8080/pessoas/${cliente.id}`,
-                { method: "DELETE" }
-            );
-
-            if (!resposta.ok) {
-                throw new Error(`Erro ao excluir pessoa: ${resposta.status}`);
-            }
+            await apiDelete(`/pessoas/${cliente.id}`);
 
             setClientes((listaAtual) =>
                 listaAtual.filter((item) => item.id !== cliente.id)
@@ -144,14 +133,13 @@ const Clientes = function Clientes() {
 
             setClienteExcluindo(null);
         } catch (erro) {
-            console.error("Erro ao excluir cliente:", erro);
+            setMensagemErro(erro.message);
         }
     }
 
     function cancelarCadastro() {
         setFormularioAberto(false);
         setClienteEditando(null);
-
     }
 
     return (
@@ -169,6 +157,12 @@ const Clientes = function Clientes() {
             <h1 className="mb-6 text-2xl font-semibold">
                 Clientes
             </h1>
+
+            {mensagemErro && (
+                <p className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {mensagemErro}
+                </p>
+            )}
 
             <div className="flex items-center gap-4 border-b pb-4">
                 <Input
@@ -192,20 +186,12 @@ const Clientes = function Clientes() {
                 </Button>
             </div>
 
-            {/* {formularioAberto && (
-                <FormularioCliente
-                    cliente={clienteEditando}
-                    onSalvar={salvarCliente}
-                    onCancelar={cancelarCadastro}
-                />
-            )} */}
-
             <TabelaCliente
                 clientes={clientesFiltrados}
                 onEditar={editarCliente}
                 onExcluir={iniciarExclusao}
+                onErro={setMensagemErro}
             />
-
 
             <ModalConfirmarExclusao
                 cliente={clienteExcluindo}
@@ -213,7 +199,7 @@ const Clientes = function Clientes() {
                 onCancelar={cancelarExclusao}
             />
         </main>
-    
+
     )
 }
 

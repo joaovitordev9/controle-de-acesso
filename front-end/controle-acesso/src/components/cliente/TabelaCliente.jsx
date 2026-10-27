@@ -8,31 +8,16 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
-import { Dialog, DialogTrigger, DialogContent } from "../ui/dialog";
-import FormularioCliente from "./FormularioCliente";
+import { apiPost } from "../../services/api";
+import { rotuloCategoria } from "../../lib/dominio";
 
-function TabelaClientes({clientes, onEditar, onExcluir}) {
+function TabelaClientes({ clientes, onEditar, onExcluir, onErro }) {
 
     const registrarEntrada = async (cliente) => {
         try {
-            const resposta = await fetch("http://localhost:8080/entradas", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    pessoa_id: cliente.id,
-                }),
-            });
-
-            if (!resposta.ok) {
-                throw new Error(`Erro ao registrar entrada: ${resposta.status}`);
-            }
-
-            const entrada = await resposta.json();
-            console.log("Entrada registrada:", entrada);
+            await apiPost("/entradas", { pessoa_id: cliente.id });
         } catch (erro) {
-            console.error("Não foi possível registrar a entrada:", erro);
+            if (onErro) onErro(erro.message);
         }
     };
 
@@ -62,24 +47,29 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                 </TableHeader>
 
             <TableBody>
-                {clientes.map(cliente => (
-                    <TableRow key={cliente.id} className="">
+                {clientes.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                            Nenhum cliente encontrado.
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    clientes.map(cliente => (
+                    <TableRow key={cliente.id}>
                         <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
-                        <TableCell className="whitespace-normal break-words">{cliente.categoria}</TableCell>
+                        <TableCell className="whitespace-normal break-words">{rotuloCategoria(cliente.categoria)}</TableCell>
                         <TableCell className="flex flex-wrap gap-2">
-                            <Dialog>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => onEditar(cliente)}
-                                >
-                                    Editar
-                                </Button>
-                            </Dialog>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onEditar(cliente)}
+                            >
+                                Editar
+                            </Button>
 
                             <Button
                                 variant="destructive"
@@ -97,7 +87,8 @@ function TabelaClientes({clientes, onEditar, onExcluir}) {
                             </Button>
                         </TableCell>
                     </TableRow>
-                ))}
+                    ))
+                )}
             </TableBody>
         </Table>
         </div>

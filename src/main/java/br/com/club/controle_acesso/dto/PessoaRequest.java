@@ -1,8 +1,8 @@
 package br.com.club.controle_acesso.dto;
 
 
-import br.com.club.controle_acesso.entity.Categoria;
 import br.com.club.controle_acesso.entity.Pessoa;
+import br.com.club.controle_acesso.enums.Categoria;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,8 +15,8 @@ public class PessoaRequest {
     private String cidade;
     private String telefone;
     private String cpf;
-    private int codigo_cota;
-    private Long categoria_id;
+    private String codigo_cota;
+    private Categoria categoria;
 
     public void preencherPessoa(Pessoa pessoa){
         pessoa.setNome(nome);
@@ -24,6 +24,7 @@ public class PessoaRequest {
         pessoa.setTelefone(telefone);
         pessoa.setCpf(cpf);
         pessoa.setCodigo_cota(codigo_cota);
+        pessoa.setCategoria(categoria);
     }
 
 }

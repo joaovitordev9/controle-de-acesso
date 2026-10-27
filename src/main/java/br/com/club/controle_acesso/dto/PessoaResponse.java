@@ -1,7 +1,6 @@
 package br.com.club.controle_acesso.dto;
 
 
-import br.com.club.controle_acesso.entity.Categoria;
 import br.com.club.controle_acesso.entity.Pessoa;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +14,8 @@ public class PessoaResponse {
     private String cidade;
     private String telefone;
     private String cpf;
-    private int codigo_cota;
+    private String codigo_cota;
+    // Nome do enum (ex.: "SOCIO") para o front preencher o select; o rótulo é resolvido no front.
     private String categoria;
 
     public static PessoaResponse PreencherPessoaResponse(Pessoa pessoa){
@@ -27,7 +27,7 @@ public class PessoaResponse {
         response.setCidade(pessoa.getCidade());
         response.setTelefone(pessoa.getTelefone());
         response.setCpf(pessoa.getCpf());
-        response.setCategoria(pessoa.getCategoriaNome());
+        response.setCategoria(pessoa.getCategoria() == null ? null : pessoa.getCategoria().name());
         response.setCodigo_cota(pessoa.getCodigo_cota());
 
         return response;

@@ -1,0 +1,42 @@
+{
+  "name": "controle-acesso-desktop",
+  "version": "1.0.0",
+  "description": "Aplicativo desktop (Electron) do Controle de Acesso",
+  "main": "main.js",
+  "author": "Club",
+  "scripts": {
+    "copy": "node copy-renderer.cjs",
+    "start": "npm run copy && electron .",
+    "dist": "npm run copy && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "br.com.club.controleacesso",
+    "productName": "Controle de Acesso",
+    "files": [
+      "main.js",
+      "preload.js",
+      "setup.html",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../target/controle-acesso-0.0.1-SNAPSHOT.jar",
+        "to": "server/controle-acesso.jar"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Controle de Acesso"
+    }
+  }
+}
