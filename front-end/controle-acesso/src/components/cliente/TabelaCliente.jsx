@@ -8,31 +8,23 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
-import { apiPost } from "../../services/api";
+import { ShieldBan } from "lucide-react";
 import { rotuloCategoria } from "../../lib/dominio";
 
-function TabelaClientes({ clientes, onEditar, onExcluir, onErro }) {
-
-    const registrarEntrada = async (cliente) => {
-        try {
-            await apiPost("/entradas", { pessoa_id: cliente.id });
-        } catch (erro) {
-            if (onErro) onErro(erro.message);
-        }
-    };
+function TabelaClientes({ clientes, onEditar, onExcluir, onRegistrarEntrada }) {
 
     return (
         <div className="overflow-hidden rounded-xl border">
 
             <Table className="mx-auto w-full table-fixed ">
                 <colgroup>
-                    <col className="w-[20%]" /> {/* Nome */}
+                    <col className="w-[18%]" /> {/* Nome */}
                     <col className="w-[14%]" /> {/* CPF */}
                     <col className="w-[12%]" /> {/* Telefone */}
                     <col className="w-[12%]" /> {/* Cidade */}
                     <col className="w-[12%]" /> {/* Código da Cota */}
                     <col className="w-[10%]" /> {/* Categoria */}
-                    <col className="w-[20%]" /> {/* Ações */}
+                    <col className="w-[22%]" /> {/* Ações */}
                 </colgroup>
                 <TableHeader className="bg-muted">
                     <TableRow>
@@ -55,36 +47,39 @@ function TabelaClientes({ clientes, onEditar, onExcluir, onErro }) {
                     </TableRow>
                 ) : (
                     clientes.map(cliente => (
-                    <TableRow key={cliente.id}>
-                        <TableCell className="whitespace-normal break-words">{cliente.nome}</TableCell>
+                    <TableRow
+                        key={cliente.id}
+                        className={cliente.bloqueado ? "bg-destructive/10 text-destructive hover:bg-destructive/15" : undefined}
+                    >
+                        <TableCell className="whitespace-normal break-words">
+                            <span className={cliente.bloqueado ? "font-semibold" : undefined}>{cliente.nome}</span>
+                        </TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.cpf}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.telefone}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.cidade}</TableCell>
                         <TableCell className="whitespace-normal break-words">{cliente.codigoDaCota}</TableCell>
                         <TableCell className="whitespace-normal break-words">{rotuloCategoria(cliente.categoria)}</TableCell>
                         <TableCell className="flex flex-wrap gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onEditar(cliente)}
-                            >
-                                Editar
-                            </Button>
+                            {cliente.bloqueado ? (
+                                <span className="inline-flex h-8 items-center gap-1.5 rounded-md border border-destructive/50 bg-destructive/15 px-3 text-xs font-semibold text-destructive">
+                                    <ShieldBan className="size-4" aria-hidden="true" />
+                                    Lista Negra
+                                </span>
+                            ) : (
+                                <Button variant="outline" size="sm" onClick={() => onEditar(cliente)}>
+                                    Editar
+                                </Button>
+                            )}
 
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => onExcluir(cliente)}
-                            >
+                            <Button variant="destructive" size="sm" onClick={() => onExcluir(cliente)}>
                                 Excluir
                             </Button>
 
-                            <Button
-                                size="sm"
-                                onClick={() => registrarEntrada(cliente)}
-                            >
-                                Registrar entrada
-                            </Button>
+                            {!cliente.bloqueado && (
+                                <Button size="sm" onClick={() => onRegistrarEntrada(cliente)}>
+                                    Registrar entrada
+                                </Button>
+                            )}
                         </TableCell>
                     </TableRow>
                     ))

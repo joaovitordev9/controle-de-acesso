@@ -49,7 +49,8 @@ Se der erro, leia a mensagem na tela (quase sempre é Java ou Node faltando).
    setx DB_PASSWORD "SUA_SENHA_DO_MYSQL"
    ```
 
-   - Use a senha do usuário `root` do MySQL.
+   - Use a senha do usuário `root` do MySQL. **Não anote a senha neste arquivo**
+     nem em lugar visível. De preferência, use uma senha forte (não use números simples).
    - Se o usuário do MySQL não for `root`, defina também `setx DB_USERNAME "outro"`.
    - A variável só vale em **janelas novas** abertas depois do `setx` — feche e
      reabra o terminal / o `.bat`.
@@ -94,13 +95,22 @@ Se der erro, leia a mensagem na tela (quase sempre é Java ou Node faltando).
   a variável de ambiente `DB_PASSWORD` não está definida (ou o terminal/`.bat`
   foi aberto antes do `setx`). Rode o `setx DB_PASSWORD "..."` (Parte B, passo 3)
   e abra uma **janela nova**.
-- **"Não conecta" no PC 2:** confirme que o `iniciar-servidor.bat` está rodando
-  no PC 1, que o firewall foi liberado (Parte B, passo 4) e que os dois PCs
-  estão na **mesma rede WiFi**.
+- **"Não conecta" no PC 2:** confirme que o app foi aberto pelo menos uma vez no
+  PC 1 depois de ligá-lo (é ele que liga o servidor), que o firewall foi liberado
+  (Parte B, passo 4) e que os dois PCs estão na **mesma rede WiFi**.
 - **O IP mudou e parou de funcionar:** o roteador pode trocar o IP do PC 1.
   Peça para fixar (reserva de DHCP) o IP do PC servidor no roteador. Se mudar,
   reabra o app no PC 2 em **Arquivo → Configurar servidor** e corrija o IP.
 - **Trocar o servidor depois:** no app, menu **Arquivo → Configurar servidor…**
   (ou `Ctrl+Shift+C`).
-- **Atualizar o sistema:** rode `build-tudo.bat` de novo, substitua o `.jar` no
-  PC 1 e reinstale o `.exe` nos PCs.
+- **Atualizar o sistema:** rode `build-tudo.bat` de novo e reinstale o `.exe`
+  (o servidor já vai dentro dele). **No PC servidor, antes de instalar:** feche o
+  app e derrube o servidor antigo (`taskkill /F /IM javaw.exe` no Prompt de
+  Comando, ou reinicie o PC). Senão o servidor velho continua rodando em segundo
+  plano e a atualização parece "não pegar". Nos PCs clientes basta fechar o app
+  e instalar.
+- **Segurança:** o sistema não tem login — qualquer computador que alcance a
+  porta 8485 do PC servidor consegue usar a API. Por isso, use o sistema só em
+  rede **interna** do clube (não na WiFi aberta para visitantes) e nunca
+  redirecione a porta 8485 no roteador para a internet. Sites abertos no
+  navegador são bloqueados de usar a API; só o app consegue.

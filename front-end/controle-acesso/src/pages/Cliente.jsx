@@ -15,10 +15,12 @@ const Clientes = function Clientes() {
 
     const [clientes, setClientes] = useState([]);
     const [clienteExcluindo, setClienteExcluindo] = useState(null);
+    const [vinculosExcluindo, setVinculosExcluindo] = useState(null);
     const [formularioAberto, setFormularioAberto] = useState(false);
     const [clienteEditando, setClienteEditando] = useState(null);
     const [busca, setBusca] = useState("");
     const [mensagemErro, setMensagemErro] = useState("");
+    const [mensagemOk, setMensagemOk] = useState("");
 
     function mapearCliente(pessoa) {
         return {
@@ -29,7 +31,19 @@ const Clientes = function Clientes() {
             cidade: pessoa.cidade,
             codigoDaCota: pessoa.codigo_cota ?? "",
             categoria: pessoa.categoria,
+            bloqueado: Boolean(pessoa.bloqueado),
         };
+    }
+
+    async function registrarEntrada(cliente) {
+        setMensagemErro("");
+        setMensagemOk("");
+        try {
+            await apiPost("/entradas", { pessoa_id: cliente.id });
+            setMensagemOk(`Entrada registrada para ${cliente.nome}.`);
+        } catch (erro) {
+            setMensagemErro(erro.message);
+        }
     }
 
     useEffect(() => {
@@ -114,12 +128,22 @@ const Clientes = function Clientes() {
         setFormularioAberto(true);
     }
 
-    function iniciarExclusao(cliente) {
+    async function iniciarExclusao(cliente) {
+        setMensagemErro("");
         setClienteExcluindo(cliente);
+        setVinculosExcluindo(null); // mostra "verificando…" até o servidor responder
+        try {
+            const vinculos = await apiGet(`/pessoas/${cliente.id}/vinculos`);
+            setVinculosExcluindo(vinculos);
+        } catch (erro) {
+            // Se não conseguir checar, deixa excluir mesmo assim (zera os vínculos).
+            setVinculosExcluindo({ entradas: 0, autorizacoes: 0, emprestimos: 0, emprestimos_em_aberto: 0, total: 0 });
+        }
     }
 
     function cancelarExclusao() {
         setClienteExcluindo(null);
+        setVinculosExcluindo(null);
     }
 
     async function confirmarExclusao(cliente) {
@@ -132,6 +156,7 @@ const Clientes = function Clientes() {
             );
 
             setClienteExcluindo(null);
+            setVinculosExcluindo(null);
         } catch (erro) {
             setMensagemErro(erro.message);
         }
@@ -163,6 +188,11 @@ const Clientes = function Clientes() {
                     {mensagemErro}
                 </p>
             )}
+            {mensagemOk && (
+                <p className="mb-4 rounded-md border border-green-600/40 bg-green-600/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
+                    {mensagemOk}
+                </p>
+            )}
 
             <div className="flex items-center gap-4 border-b pb-4">
                 <Input
@@ -190,11 +220,12 @@ const Clientes = function Clientes() {
                 clientes={clientesFiltrados}
                 onEditar={editarCliente}
                 onExcluir={iniciarExclusao}
-                onErro={setMensagemErro}
+                onRegistrarEntrada={registrarEntrada}
             />
 
             <ModalConfirmarExclusao
                 cliente={clienteExcluindo}
+                vinculos={vinculosExcluindo}
                 onConfirmar={confirmarExclusao}
                 onCancelar={cancelarExclusao}
             />

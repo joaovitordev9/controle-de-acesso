@@ -9,11 +9,14 @@ import br.com.club.controle_acesso.exception.RecursoNaoEncontradoException;
 import br.com.club.controle_acesso.exception.RegraNegocioException;
 import br.com.club.controle_acesso.repository.CotaRepository;
 import br.com.club.controle_acesso.repository.EntradaRepository;
+import br.com.club.controle_acesso.repository.UsoAtivoCotaProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CotaService {
@@ -31,9 +34,24 @@ public class CotaService {
 
     @Transactional(readOnly = true)
     public List<CotaResponse> listarCotas() {
-        return cotaRepository.findAll()
+        LocalDateTime agora = LocalDateTime.now();
+
+        // Uma query só traz o uso ativo de todas as cotas (em vez de 2 por cota).
+        Map<Long, long[]> usoPorCota = new HashMap<>(); // [0]=cortesias, [1]=convites
+        for (UsoAtivoCotaProjection uso : entradaRepository.contarUtilizacoesAtivasPorCota(agora)) {
+            long[] par = usoPorCota.computeIfAbsent(uso.getCotaId(), k -> new long[2]);
+            switch (uso.getTipo()) {
+                case CORTESIA -> par[0] = uso.getTotal();
+                case CONVITE_ESPECIAL -> par[1] = uso.getTotal();
+            }
+        }
+
+        return cotaRepository.buscarTodasComSocios()
                 .stream()
-                .map(this::montarResposta)
+                .map(cota -> {
+                    long[] par = usoPorCota.getOrDefault(cota.getId(), new long[2]);
+                    return CotaResponse.preencherCotaResponse(cota, par[0], par[1]);
+                })
                 .toList();
     }
 

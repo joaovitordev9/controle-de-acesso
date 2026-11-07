@@ -31,11 +31,14 @@ class RegrasNegocioTest {
     @Autowired AutorizacaoService autorizacaoService;
     @Autowired CotaService cotaService;
     @Autowired ConfiguracaoService configuracaoService;
+    @Autowired ListaNegraService listaNegraService;
+    @Autowired EntradaService entradaService;
 
     @Autowired EntradaRepository entradaRepository;
     @Autowired AutorizacaoRepository autorizacaoRepository;
     @Autowired PessoaRepository pessoaRepository;
     @Autowired CotaRepository cotaRepository;
+    @Autowired ListaNegraRepository listaNegraRepository;
 
     private final AtomicInteger seq = new AtomicInteger();
 
@@ -45,6 +48,7 @@ class RegrasNegocioTest {
         autorizacaoRepository.deleteAll();
         pessoaRepository.deleteAll();
         cotaRepository.deleteAll();
+        listaNegraRepository.deleteAll();
     }
 
     // ---------- helpers ----------
@@ -295,5 +299,225 @@ class RegrasNegocioTest {
 
     private static void await(CountDownLatch latch) {
         try { latch.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
+
+    // ---------- lista negra ----------
+
+    private ListaNegraResponse bloquearPessoa(Long pessoaId) {
+        ListaNegraRequest req = new ListaNegraRequest();
+        req.setPessoa_id(pessoaId);
+        req.setMotivo("Briga na piscina");
+        return listaNegraService.bloquear(req);
+    }
+
+    private EntradaDiretaRequest entradaDireta(Long cotaId, Long pessoaId) {
+        EntradaDiretaRequest req = new EntradaDiretaRequest();
+        req.setCota_id(cotaId);
+        req.setPessoa_id(pessoaId);
+        req.setTipo(TipoAutorizacao.CONVITE_ESPECIAL);
+        return req;
+    }
+
+    @Test
+    @DisplayName("Pessoa na lista negra não entra por autorização nem por entrada direta")
+    void listaNegraBloqueiaEntrada() {
+        Long cota = criarTitular(unico("C"), false, 2);
+        Long pessoa = criarPessoa("Barrado");
+        bloquearPessoa(pessoa);
+
+        Long aut = criarAutorizacao(cota, "Barrado");
+        RegraNegocioException ex = assertThrows(RegraNegocioException.class,
+                () -> confirmar(aut, pessoa, TipoAutorizacao.CONVITE_ESPECIAL));
+        assertThat(ex.getMessage()).contains("Lista Negra").contains("Briga na piscina");
+
+        assertThrows(RegraNegocioException.class,
+                () -> entradaService.registrarEntradaDireta(entradaDireta(cota, pessoa)));
+
+        assertThat(saldo(cota).getConvites_especiais_disponiveis()).isEqualTo(2); // nada consumido
+    }
+
+    @Test
+    @DisplayName("CPF avulso bloqueado vale para quem for cadastrado depois, com ou sem pontuação")
+    void listaNegraCpfAvulso() {
+        ListaNegraRequest req = new ListaNegraRequest();
+        req.setCpf("123.456.789-00");
+        req.setNome("Fulano");
+        req.setMotivo("Proibido pela diretoria");
+        ListaNegraResponse registro = listaNegraService.bloquear(req);
+        assertThat(registro.getCpf()).isEqualTo("12345678900");
+        assertThat(registro.getPessoa_id()).isNull();
+
+        PessoaRequest pr = new PessoaRequest();
+        pr.setNome("Fulano de Tal");
+        pr.setCpf("12345678900");
+        pr.setCategoria(Categoria.CONVIDADO);
+        PessoaResponse pessoa = pessoaService.cadastrarPessoa(pr);
+        assertThat(pessoa.isBloqueado()).isTrue();
+        assertThat(pessoa.getMotivo_bloqueio()).isEqualTo("Proibido pela diretoria");
+        assertThat(listaNegraService.listar().get(0).getPessoa_id()).isEqualTo(pessoa.getId());
+
+        Long cota = criarTitular(unico("C"), false, 1);
+        assertThrows(RegraNegocioException.class,
+                () -> entradaService.registrarEntradaDireta(entradaDireta(cota, pessoa.getId())));
+    }
+
+    @Test
+    @DisplayName("Desbloquear libera a entrada; CPF repetido na lista dá erro")
+    void listaNegraDesbloquearEDuplicado() {
+        Long cota = criarTitular(unico("C"), false, 1);
+        Long pessoa = criarPessoa("Arrependido");
+        ListaNegraResponse registro = bloquearPessoa(pessoa);
+
+        RegraNegocioException dup = assertThrows(RegraNegocioException.class, () -> bloquearPessoa(pessoa));
+        assertThat(dup.getMessage()).contains("já está na Lista Negra");
+
+        listaNegraService.desbloquear(registro.getId());
+        assertThat(pessoaService.listarPessoas().stream()
+                .filter(p -> p.getId().equals(pessoa)).findFirst().orElseThrow().isBloqueado()).isFalse();
+
+        entradaService.registrarEntradaDireta(entradaDireta(cota, pessoa));
+        assertThat(saldo(cota).getConvites_especiais_disponiveis()).isEqualTo(0);
+    }
+
+    // ---------- lista negra: casos-limite ----------
+
+    @Test
+    @DisplayName("[LN] Botão Registrar entrada (POST /entradas) também respeita a Lista Negra")
+    void ln_entradaSimplesBloqueada() {
+        Long pessoa = criarPessoa("Barrado");
+        bloquearPessoa(pessoa);
+        EntradaRequest req = new EntradaRequest();
+        req.setPessoa_id(pessoa);
+        assertThrows(RegraNegocioException.class, () -> entradaService.cadastrarEntrada(req));
+    }
+
+    @Test
+    @DisplayName("[LN] Excluir a pessoa não tira o CPF da Lista Negra; recadastro volta bloqueado")
+    void ln_excluirPessoaMantemBloqueio() {
+        PessoaRequest pr = new PessoaRequest();
+        pr.setNome("Some e volta");
+        pr.setCpf("987.654.321-00");
+        pr.setCategoria(Categoria.CONVIDADO);
+        Long id = pessoaService.cadastrarPessoa(pr).getId();
+        bloquearPessoa(id);
+
+        pessoaService.deletarPessoa(id);
+        assertThat(listaNegraService.listar()).hasSize(1);
+        assertThat(listaNegraService.listar().get(0).getPessoa_id()).isNull();
+
+        pr.setCpf("98765432100");
+        assertThat(pessoaService.cadastrarPessoa(pr).isBloqueado()).isTrue();
+    }
+
+    @Test
+    @DisplayName("[LN] Trocar o CPF de quem está bloqueado não pode burlar a Lista Negra")
+    void ln_trocarCpfNaoBurla() {
+        Long id = criarPessoa("Espertinho");
+        bloquearPessoa(id);
+        PessoaRequest edicao = new PessoaRequest();
+        edicao.setNome("Espertinho");
+        edicao.setCpf("11122233344");
+        edicao.setCategoria(Categoria.CONVIDADO);
+
+        assertThrows(RegraNegocioException.class, () -> pessoaService.alterarPessoa(id, edicao));
+    }
+
+    @Test
+    @DisplayName("[LN] CPF avulso inválido (vazio, curto, letras) é recusado")
+    void ln_cpfAvulsoInvalido() {
+        for (String cpf : new String[]{null, "", "   ", "abc", "123"}) {
+            ListaNegraRequest req = new ListaNegraRequest();
+            req.setCpf(cpf);
+            req.setMotivo("x");
+            assertThrows(RegraNegocioException.class, () -> listaNegraService.bloquear(req), "cpf=" + cpf);
+        }
+    }
+
+    @Test
+    @DisplayName("[LN] Motivo vazio ou longo demais é recusado com mensagem clara")
+    void ln_motivoInvalido() {
+        Long pessoa = criarPessoa("Sem motivo");
+        for (String motivo : new String[]{null, "", "    ", "a".repeat(1001)}) {
+            ListaNegraRequest req = new ListaNegraRequest();
+            req.setPessoa_id(pessoa);
+            req.setMotivo(motivo);
+            RegraNegocioException ex = assertThrows(RegraNegocioException.class, () -> listaNegraService.bloquear(req));
+            assertThat(ex.getMessage()).containsIgnoringCase("motivo");
+        }
+        ListaNegraRequest ok = new ListaNegraRequest();
+        ok.setPessoa_id(pessoa);
+        ok.setMotivo("a".repeat(1000));
+        listaNegraService.bloquear(ok);
+    }
+
+    @Test
+    @DisplayName("[LN] Bloquear pessoa inexistente e desbloquear duas vezes dão erro tratado")
+    void ln_idsInexistentes() {
+        ListaNegraRequest req = new ListaNegraRequest();
+        req.setPessoa_id(999999L);
+        req.setMotivo("x");
+        assertThrows(br.com.club.controle_acesso.exception.RecursoNaoEncontradoException.class,
+                () -> listaNegraService.bloquear(req));
+
+        ListaNegraResponse r = bloquearPessoa(criarPessoa("Duas vezes"));
+        listaNegraService.desbloquear(r.getId());
+        assertThrows(br.com.club.controle_acesso.exception.RecursoNaoEncontradoException.class,
+                () -> listaNegraService.desbloquear(r.getId()));
+    }
+
+    @Test
+    @DisplayName("[LN] Duas pessoas bloqueando o mesmo CPF ao mesmo tempo: só um registro, sem erro 500")
+    void ln_bloqueioConcorrente() throws Exception {
+        Long pessoa = criarPessoa("Concorrente");
+        int n = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(n);
+        CountDownLatch largada = new CountDownLatch(1);
+        AtomicInteger ok = new AtomicInteger();
+        AtomicInteger regraNegocio = new AtomicInteger();
+        AtomicInteger outros = new AtomicInteger();
+        for (int i = 0; i < n; i++) {
+            pool.submit(() -> {
+                await(largada);
+                try { bloquearPessoa(pessoa); ok.incrementAndGet(); }
+                catch (RegraNegocioException e) { regraNegocio.incrementAndGet(); }
+                catch (Exception e) { outros.incrementAndGet(); }
+            });
+        }
+        largada.countDown();
+        pool.shutdown();
+        assertThat(pool.awaitTermination(30, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(ok.get()).isEqualTo(1);
+        assertThat(outros.get()).as("erros não tratados").isZero();
+        assertThat(listaNegraRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("[LN] Mesmo CPF com e sem pontuação conta como duplicado")
+    void ln_duplicadoFormatosDiferentes() {
+        ListaNegraRequest a = new ListaNegraRequest();
+        a.setCpf("555.666.777-88"); a.setMotivo("x");
+        listaNegraService.bloquear(a);
+        ListaNegraRequest b = new ListaNegraRequest();
+        b.setCpf(" 55566677788 "); b.setMotivo("y");
+        assertThrows(RegraNegocioException.class, () -> listaNegraService.bloquear(b));
+    }
+
+    @Test
+    @DisplayName("[LN] Listagem de pessoas traz o bloqueio e não quebra com CPF repetido em formatos diferentes")
+    void ln_listagemComCpfsParecidos() {
+        PessoaRequest p1 = new PessoaRequest();
+        p1.setNome("Formatado"); p1.setCpf("222.333.444-55"); p1.setCategoria(Categoria.CONVIDADO);
+        pessoaService.cadastrarPessoa(p1);
+        PessoaRequest p2 = new PessoaRequest();
+        p2.setNome("Sem pontos"); p2.setCpf("22233344455"); p2.setCategoria(Categoria.CONVIDADO);
+        pessoaService.cadastrarPessoa(p2);
+
+        ListaNegraRequest req = new ListaNegraRequest();
+        req.setCpf("22233344455"); req.setMotivo("x");
+        listaNegraService.bloquear(req);
+
+        assertThat(pessoaService.listarPessoas()).allMatch(PessoaResponse::isBloqueado);
+        assertThat(listaNegraService.listar()).hasSize(1);
     }
 }

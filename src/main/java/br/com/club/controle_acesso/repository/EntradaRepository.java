@@ -22,4 +22,20 @@ public interface EntradaRepository extends JpaRepository<Entrada, Long> {
     @Query("select e from Entrada e where e.tipo_convite is not null " +
             "and e.termino_previsto > :agora order by e.data_entrada desc")
     List<Entrada> buscarEmUso(@Param("agora") LocalDateTime agora);
+
+    // Indica se a pessoa já está ocupando ALGUM convite/cortesia neste momento
+    // (não pode ser colocada em outro até o término ou até ser liberada).
+    @Query("select count(e) > 0 from Entrada e where e.pessoa.id = :pessoaId " +
+            "and e.tipo_convite is not null and e.termino_previsto > :agora")
+    boolean pessoaEmUso(@Param("pessoaId") Long pessoaId, @Param("agora") LocalDateTime agora);
+
+    // Uso ativo de TODAS as cotas numa query só (evita N+1 na listagem de cotas).
+    @Query("select e.cota.id as cotaId, e.tipo_convite as tipo, count(e) as total " +
+            "from Entrada e where e.tipo_convite is not null and e.termino_previsto > :agora " +
+            "group by e.cota.id, e.tipo_convite")
+    List<UsoAtivoCotaProjection> contarUtilizacoesAtivasPorCota(@Param("agora") LocalDateTime agora);
+
+    // Entradas vinculadas a uma pessoa (como visitante ou como titular) — usadas ao excluir o cliente.
+    long countByPessoaIdOrTitularId(Long pessoaId, Long titularId);
+    void deleteByPessoaIdOrTitularId(Long pessoaId, Long titularId);
 }

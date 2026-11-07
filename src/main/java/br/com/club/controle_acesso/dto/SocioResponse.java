@@ -1,5 +1,6 @@
 package br.com.club.controle_acesso.dto;
 
+import br.com.club.controle_acesso.entity.ListaNegra;
 import br.com.club.controle_acesso.entity.Socio;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,19 @@ public class SocioResponse {
     private String papel;
     private boolean diretor;
     private Long cota_id;
+    private boolean bloqueado;
+    private String motivo_bloqueio;
+    private Long lista_negra_id;
+
+    public static SocioResponse preencherSocioResponse(Socio socio, ListaNegra bloqueio) {
+        SocioResponse response = preencherSocioResponse(socio);
+        if (bloqueio != null) {
+            response.setBloqueado(true);
+            response.setMotivo_bloqueio(bloqueio.getMotivo());
+            response.setLista_negra_id(bloqueio.getId());
+        }
+        return response;
+    }
 
     public static SocioResponse preencherSocioResponse(Socio socio) {
         SocioResponse response = new SocioResponse();

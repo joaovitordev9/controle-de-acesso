@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 // Entrada registrada direto na portaria, sem autorização prévia:
 // escolhe-se a pessoa, a cota do sócio e o tipo de benefício.
 @Getter
@@ -19,4 +21,8 @@ public class EntradaDiretaRequest {
 
     @NotNull(message = "Escolha o tipo (convite ou cortesia).")
     private TipoAutorizacao tipo;
+
+    // Opcional: dia em que a pessoa sai (ocupa o convite até o fim desse dia).
+    // Se não informado, usa o término automático (hora de renovação).
+    private LocalDate data_saida;
 }

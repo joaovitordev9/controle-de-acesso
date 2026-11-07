@@ -8,6 +8,8 @@ import br.com.club.controle_acesso.dto.EntradaResponse;
 import br.com.club.controle_acesso.entity.Cota;
 import br.com.club.controle_acesso.entity.Entrada;
 import br.com.club.controle_acesso.entity.Pessoa;
+import br.com.club.controle_acesso.entity.Socio;
+import br.com.club.controle_acesso.enums.Categoria;
 import br.com.club.controle_acesso.enums.TipoAutorizacao;
 import br.com.club.controle_acesso.exception.RecursoNaoEncontradoException;
 import br.com.club.controle_acesso.exception.RegraNegocioException;
@@ -27,15 +29,18 @@ public class EntradaService {
     private final PessoaRepository pessoaRepository;
     private final CotaRepository cotaRepository;
     private final ConfiguracaoService configuracaoService;
+    private final ListaNegraService listaNegraService;
 
     public EntradaService(EntradaRepository entradaRepository,
                           PessoaRepository pessoaRepository,
                           CotaRepository cotaRepository,
-                          ConfiguracaoService configuracaoService) {
+                          ConfiguracaoService configuracaoService,
+                          ListaNegraService listaNegraService) {
         this.entradaRepository = entradaRepository;
         this.pessoaRepository = pessoaRepository;
         this.cotaRepository = cotaRepository;
         this.configuracaoService = configuracaoService;
+        this.listaNegraService = listaNegraService;
     }
 
     public List<EntradaResponse> listarEntradas() {
@@ -56,7 +61,8 @@ public class EntradaService {
 
     public EntradaResponse cadastrarEntrada(EntradaRequest entradaRequest){
 
-        Pessoa pessoa = pessoaRepository.findById(entradaRequest.getPessoa_id()).orElseThrow(() -> new RuntimeException("Entrada não encontrada"));
+        Pessoa pessoa = pessoaRepository.findById(entradaRequest.getPessoa_id()).orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada"));
+        listaNegraService.validarPodeEntrar(pessoa);
 
         Entrada entrada = new Entrada();
 
@@ -79,6 +85,21 @@ public class EntradaService {
         Pessoa pessoa = pessoaRepository.findById(request.getPessoa_id())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada"));
 
+        // Sócio já tem acesso ao clube como sócio: não ocupa convite.
+        if (pessoa instanceof Socio || pessoa.getCategoria() == Categoria.SOCIO) {
+            throw new RegraNegocioException("Sócio não usa convite: já tem acesso ao clube como sócio.");
+        }
+
+        listaNegraService.validarPodeEntrar(pessoa);
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        // A mesma pessoa não pode ocupar dois convites/cortesias ao mesmo tempo.
+        if (entradaRepository.pessoaEmUso(pessoa.getId(), agora)) {
+            throw new RegraNegocioException(
+                    "Esta pessoa já está usando um convite/cortesia no momento. Libere-a ou aguarde o término antes de colocá-la em outro.");
+        }
+
         // Lock de escrita na cota para serializar entradas simultâneas.
         Cota cota = cotaRepository.buscarParaAtualizacao(request.getCota_id())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Cota não encontrada"));
@@ -88,7 +109,6 @@ public class EntradaService {
                 ? cota.getQtd_cortesias()
                 : cota.getQtd_convites_especiais();
 
-        LocalDateTime agora = LocalDateTime.now();
         long ativas = entradaRepository.contarUtilizacoesAtivas(cota.getId(), tipo, agora);
 
         if (ativas >= concedidos) {
@@ -102,7 +122,7 @@ public class EntradaService {
         entrada.setCota(cota);
         entrada.setTitular(cota.getTitular());
         entrada.setTipo_convite(tipo);
-        entrada.setTermino_previsto(configuracaoService.calcularTermino(agora));
+        entrada.setTermino_previsto(configuracaoService.calcularTermino(agora, request.getData_saida()));
         entrada = entradaRepository.save(entrada);
 
         return EntradaResponse.PreencherEntrada(entrada);

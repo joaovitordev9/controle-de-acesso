@@ -74,6 +74,13 @@ async function abrirPrincipal(apiUrl, aguardarServidorLocal = false) {
     },
   });
 
+  // Segurança: a janela só mostra a tela do próprio app. Links externos e tentativas
+  // de navegar para outro site são bloqueados.
+  janelaPrincipal.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  janelaPrincipal.webContents.on("will-navigate", (evento, url) => {
+    if (!url.startsWith("file://")) evento.preventDefault();
+  });
+
   janelaPrincipal.maximize();
   janelaPrincipal.show();
 

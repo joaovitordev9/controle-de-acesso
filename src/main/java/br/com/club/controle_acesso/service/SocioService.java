@@ -26,16 +26,19 @@ public class SocioService {
     private final SocioRepository socioRepository;
     private final CotaRepository cotaRepository;
     private final PessoaRepository pessoaRepository;
+    private final ListaNegraService listaNegraService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public SocioService(SocioRepository socioRepository,
                         CotaRepository cotaRepository,
-                        PessoaRepository pessoaRepository) {
+                        PessoaRepository pessoaRepository,
+                        ListaNegraService listaNegraService) {
         this.socioRepository = socioRepository;
         this.cotaRepository = cotaRepository;
         this.pessoaRepository = pessoaRepository;
+        this.listaNegraService = listaNegraService;
     }
 
     @Transactional(readOnly = true)
@@ -72,12 +75,16 @@ public class SocioService {
         socio.setCota(cota);
 
         socio = socioRepository.save(socio);
-        return SocioResponse.preencherSocioResponse(socio);
+        return SocioResponse.preencherSocioResponse(socio,
+                listaNegraService.buscarPorCpf(socio.getCpf()).orElse(null));
     }
 
     @Transactional
     public SocioResponse alterarSocio(Long id, SocioRequest request) {
         Socio socio = socioRepository.findById(id).orElse(null);
+
+        pessoaRepository.findById(id).ifPresent(atual ->
+                listaNegraService.validarTrocaDeCpf(atual.getCpf(), request.getCpf()));
 
         // Conversão: um cliente comum passou a ser sócio (muda o discriminador da herança).
         if (socio == null) {
@@ -117,7 +124,8 @@ public class SocioService {
         socio.setCota(cota);
 
         socio = socioRepository.save(socio);
-        return SocioResponse.preencherSocioResponse(socio);
+        return SocioResponse.preencherSocioResponse(socio,
+                listaNegraService.buscarPorCpf(socio.getCpf()).orElse(null));
     }
 
     // Se a cota já tem titular (que não seja este sócio), o sócio entra como dependente.

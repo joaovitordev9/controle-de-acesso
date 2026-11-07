@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(indexes = {
+        // Acelera a listagem de autorizações pendentes.
+        @Index(name = "idx_autorizacao_situacao", columnList = "situacao")
+})
 public class Autorizacao {
 
     @Id

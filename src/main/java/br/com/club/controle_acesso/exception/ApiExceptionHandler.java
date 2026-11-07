@@ -1,5 +1,6 @@
 package br.com.club.controle_acesso.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,6 +23,14 @@ public class ApiExceptionHandler {
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<Map<String, Object>> tratarNaoEncontrado(RecursoNaoEncontradoException excecao) {
         return montarResposta(HttpStatus.NOT_FOUND, excecao.getMessage());
+    }
+
+    // Rede de segurança: se algum vínculo não tratado impedir a exclusão no banco,
+    // devolve 409 com mensagem amigável em vez de estourar 500.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> tratarIntegridade(DataIntegrityViolationException excecao) {
+        return montarResposta(HttpStatus.CONFLICT,
+                "Não foi possível concluir: este registro possui outros dados vinculados a ele.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

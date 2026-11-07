@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { SeloListaNegra, AvisoListaNegra } from "../components/listaNegra/ListaNegraUI";
 import { apiGet, apiPost, apiDelete } from "../services/api";
 import { CATEGORIAS } from "../lib/dominio";
 
@@ -71,11 +72,15 @@ function Autorizacoes() {
         }
     }
 
-    async function confirmarEntrada(autorizacaoId, pessoaId, tipo, nomePessoa) {
+    async function confirmarEntrada(autorizacaoId, pessoaId, tipo, nomePessoa, dataSaida) {
         setMensagemErro("");
         setMensagemOk("");
         try {
-            await apiPost(`/autorizacoes/${autorizacaoId}/chegada`, { pessoa_id: pessoaId, tipo });
+            await apiPost(`/autorizacoes/${autorizacaoId}/chegada`, {
+                pessoa_id: pessoaId,
+                tipo,
+                data_saida: dataSaida || null,
+            });
             setConfirmando(null);
             setMensagemOk(`Entrada confirmada para ${nomePessoa}. O convite do sócio está em uso.`);
             await carregar();
@@ -131,7 +136,15 @@ function Autorizacoes() {
                         ) : (
                             filtradas.map((a) => (
                                 <TableRow key={a.id}>
-                                    <TableCell className="font-medium">{a.nomeAutorizado}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <span className="flex items-center gap-2">
+                                            {a.nomeAutorizado}
+                                            {(() => {
+                                                const p = a.pessoa_id ? pessoas.find((x) => x.id === a.pessoa_id) : null;
+                                                return p?.bloqueado ? <SeloListaNegra motivo={p.motivo_bloqueio} /> : null;
+                                            })()}
+                                        </span>
+                                    </TableCell>
                                     <TableCell>{a.titular} <span className="text-muted-foreground">({a.codigo_cota})</span></TableCell>
                                     <TableCell>
                                         <div className="flex justify-center gap-2">
@@ -256,6 +269,7 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
     const [modoCadastro, setModoCadastro] = useState(false);
     const [novo, setNovo] = useState({ nome: "", cpf: "", telefone: "", cidade: "", categoria: "CONVIDADO" });
     const [tipo, setTipo] = useState("CONVITE_ESPECIAL");
+    const [dataSaida, setDataSaida] = useState("");
 
     useEffect(() => {
         if (autorizacao) {
@@ -264,6 +278,7 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
             setModoCadastro(false);
             setNovo({ nome: autorizacao.nomeAutorizado || "", cpf: "", telefone: "", cidade: "", categoria: "CONVIDADO" });
             setTipo("CONVITE_ESPECIAL");
+            setDataSaida("");
         }
     }, [autorizacao]);
 
@@ -278,6 +293,7 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
     const pessoaSelecionada = pessoas.find((p) => p.id === pessoaId);
 
     const pessoasFiltradas = pessoas.filter((p) => {
+        if (p.categoria === "SOCIO") return false; // sócio não usa convite
         const termo = norm(busca);
         if (!termo) return true;
         return norm(p.nome).includes(termo) || (p.cpf ?? "").replace(/\D/g, "").includes(termo.replace(/\D/g, ""));
@@ -301,7 +317,7 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
     function confirmar() {
         if (!pessoaId) return;
         const nome = pessoaSelecionada ? pessoaSelecionada.nome : (autorizacao.nomeAutorizado || "");
-        onConfirmar(autorizacao.id, pessoaId, tipo, nome);
+        onConfirmar(autorizacao.id, pessoaId, tipo, nome, dataSaida);
     }
 
     return (
@@ -356,9 +372,14 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
                             </div>
                         </form>
                     ) : pessoaSelecionada ? (
-                        <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                            <span>{pessoaSelecionada.nome} <span className="text-muted-foreground">{pessoaSelecionada.cpf}</span></span>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => setPessoaId(null)}>Trocar</Button>
+                        <div className="space-y-2">
+                            <div className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${pessoaSelecionada.bloqueado ? "border-destructive/60 text-destructive" : ""}`}>
+                                <span>{pessoaSelecionada.nome} <span className={pessoaSelecionada.bloqueado ? undefined : "text-muted-foreground"}>{pessoaSelecionada.cpf}</span></span>
+                                <Button type="button" variant="ghost" size="sm" onClick={() => setPessoaId(null)}>Trocar</Button>
+                            </div>
+                            {pessoaSelecionada.bloqueado && (
+                                <AvisoListaNegra nome={pessoaSelecionada.nome} motivo={pessoaSelecionada.motivo_bloqueio} />
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -370,10 +391,13 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
                                 ) : (
                                     pessoasFiltradas.slice(0, 50).map((p) => (
                                         <button key={p.id} type="button"
-                                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent"
+                                            className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm ${p.bloqueado ? "bg-destructive/10 text-destructive hover:bg-destructive/15" : "hover:bg-accent"}`}
                                             onClick={() => setPessoaId(p.id)}>
-                                            <span>{p.nome}</span>
-                                            <span className="text-muted-foreground">{p.cpf}</span>
+                                            <span className="flex items-center gap-2">
+                                                {p.nome}
+                                                {p.bloqueado && <SeloListaNegra motivo={p.motivo_bloqueio} />}
+                                            </span>
+                                            <span className={p.bloqueado ? undefined : "text-muted-foreground"}>{p.cpf}</span>
                                         </button>
                                     ))
                                 )}
@@ -400,11 +424,21 @@ function DialogConfirmar({ autorizacao, cota, pessoas, onCancelar, onConfirmar, 
                             <p className="text-sm text-destructive">Sem saldo disponível para este tipo.</p>
                         )}
                     </div>
+
+                    {/* 3. Dia de saída (opcional) */}
+                    <div className="grid gap-2">
+                        <Label htmlFor="conf-saida">Dia de saída (opcional)</Label>
+                        <Input id="conf-saida" type="date" value={dataSaida}
+                            onChange={(e) => setDataSaida(e.target.value)} />
+                        <span className="text-xs text-muted-foreground">
+                            Deixe em branco para usar o término automático.
+                        </span>
+                    </div>
                 </div>
 
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={onCancelar}>Cancelar</Button>
-                    <Button type="button" onClick={confirmar} disabled={!pessoaId || dispSelecionado <= 0}>
+                    <Button type="button" onClick={confirmar} disabled={!pessoaId || dispSelecionado <= 0 || Boolean(pessoaSelecionada?.bloqueado)}>
                         Confirmar entrada
                     </Button>
                 </DialogFooter>

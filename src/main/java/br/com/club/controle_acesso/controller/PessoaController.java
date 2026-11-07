@@ -3,6 +3,7 @@ package br.com.club.controle_acesso.controller;
 
 import br.com.club.controle_acesso.dto.PessoaRequest;
 import br.com.club.controle_acesso.dto.PessoaResponse;
+import br.com.club.controle_acesso.dto.PessoaVinculosResponse;
 import br.com.club.controle_acesso.entity.Pessoa;
 import br.com.club.controle_acesso.service.PessoaService;
 import jakarta.validation.Valid;
@@ -35,6 +36,12 @@ public class PessoaController {
     @PutMapping("/{id}")
     public PessoaResponse alterar(@PathVariable Long id, @Valid @RequestBody PessoaRequest pessoaRequest){
         return pessoaService.alterarPessoa(id,pessoaRequest);
+    }
+
+    // O que está vinculado a esta pessoa (para o front confirmar a exclusão).
+    @GetMapping("/{id}/vinculos")
+    public PessoaVinculosResponse vinculos(@PathVariable Long id){
+        return pessoaService.contarVinculos(id);
     }
 
     @DeleteMapping("/{id}")

@@ -6,6 +6,7 @@ import br.com.club.controle_acesso.repository.ConfiguracaoRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -68,5 +69,20 @@ public class ConfiguracaoService {
             termino = termino.plusDays(1);
         }
         return termino;
+    }
+
+    /**
+     * Término considerando um dia de saída opcional escolhido no balcão.
+     * Com data: ocupa o convite até o fim desse dia (23:59:59).
+     * Sem data: cai no término automático (hora de renovação).
+     */
+    public LocalDateTime calcularTermino(LocalDateTime inicio, LocalDate dataSaida) {
+        if (dataSaida == null) {
+            return calcularTermino(inicio);
+        }
+        if (dataSaida.isBefore(inicio.toLocalDate())) {
+            throw new RegraNegocioException("O dia de saída não pode ser no passado.");
+        }
+        return dataSaida.atTime(23, 59, 59);
     }
 }

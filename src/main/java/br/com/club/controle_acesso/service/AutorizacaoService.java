@@ -8,6 +8,8 @@ import br.com.club.controle_acesso.entity.Autorizacao;
 import br.com.club.controle_acesso.entity.Cota;
 import br.com.club.controle_acesso.entity.Entrada;
 import br.com.club.controle_acesso.entity.Pessoa;
+import br.com.club.controle_acesso.entity.Socio;
+import br.com.club.controle_acesso.enums.Categoria;
 import br.com.club.controle_acesso.enums.SituacaoAutorizacao;
 import br.com.club.controle_acesso.enums.TipoAutorizacao;
 import br.com.club.controle_acesso.exception.RecursoNaoEncontradoException;
@@ -30,17 +32,20 @@ public class AutorizacaoService {
     private final PessoaRepository pessoaRepository;
     private final EntradaRepository entradaRepository;
     private final ConfiguracaoService configuracaoService;
+    private final ListaNegraService listaNegraService;
 
     public AutorizacaoService(AutorizacaoRepository autorizacaoRepository,
                               CotaRepository cotaRepository,
                               PessoaRepository pessoaRepository,
                               EntradaRepository entradaRepository,
-                              ConfiguracaoService configuracaoService) {
+                              ConfiguracaoService configuracaoService,
+                              ListaNegraService listaNegraService) {
         this.autorizacaoRepository = autorizacaoRepository;
         this.cotaRepository = cotaRepository;
         this.pessoaRepository = pessoaRepository;
         this.entradaRepository = entradaRepository;
         this.configuracaoService = configuracaoService;
+        this.listaNegraService = listaNegraService;
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +106,21 @@ public class AutorizacaoService {
         Pessoa pessoa = pessoaRepository.findById(request.getPessoa_id())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada"));
 
+        // Sócio já tem acesso ao clube como sócio: não ocupa convite.
+        if (pessoa instanceof Socio || pessoa.getCategoria() == Categoria.SOCIO) {
+            throw new RegraNegocioException("Sócio não usa convite: já tem acesso ao clube como sócio.");
+        }
+
+        listaNegraService.validarPodeEntrar(pessoa);
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        // A mesma pessoa não pode ocupar dois convites/cortesias ao mesmo tempo.
+        if (entradaRepository.pessoaEmUso(pessoa.getId(), agora)) {
+            throw new RegraNegocioException(
+                    "Esta pessoa já está usando um convite/cortesia no momento. Libere-a ou aguarde o término antes de colocá-la em outro.");
+        }
+
         // Lock de escrita na cota para serializar confirmações simultâneas.
         Cota cota = cotaRepository.buscarParaAtualizacao(autorizacao.getCota().getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Cota não encontrada"));
@@ -110,7 +130,6 @@ public class AutorizacaoService {
                 ? cota.getQtd_cortesias()
                 : cota.getQtd_convites_especiais();
 
-        LocalDateTime agora = LocalDateTime.now();
         long ativas = entradaRepository.contarUtilizacoesAtivas(cota.getId(), tipo, agora);
 
         if (ativas >= concedidos) {
@@ -124,7 +143,7 @@ public class AutorizacaoService {
         entrada.setCota(cota);
         entrada.setTitular(cota.getTitular());
         entrada.setTipo_convite(tipo);
-        entrada.setTermino_previsto(configuracaoService.calcularTermino(agora));
+        entrada.setTermino_previsto(configuracaoService.calcularTermino(agora, request.getData_saida()));
         entrada = entradaRepository.save(entrada);
 
         autorizacao.setSituacao(SituacaoAutorizacao.CONFIRMADA);

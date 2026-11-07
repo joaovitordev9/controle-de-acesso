@@ -11,6 +11,12 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
+@Table(indexes = {
+        // Acelera a contagem de convites/cortesias em uso por cota.
+        @Index(name = "idx_entrada_cota_tipo_termino", columnList = "cota_id, tipo_convite, termino_previsto"),
+        // Acelera a checagem de "pessoa já está em uso".
+        @Index(name = "idx_entrada_pessoa_tipo_termino", columnList = "pessoa_id, tipo_convite, termino_previsto")
+})
 public class Entrada {
 
     @Id

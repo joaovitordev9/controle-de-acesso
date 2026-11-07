@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { SeloListaNegra, AvisoListaNegra } from "../components/listaNegra/ListaNegraUI";
 import { apiGet, apiPost } from "../services/api";
 import { CATEGORIAS, rotuloTipoConvite } from "../lib/dominio";
 
@@ -44,11 +45,16 @@ function Convites() {
     }, []);
 
     // Entrada direta: registra a chegada sem autorização prévia (busca pessoa + sócio + tipo).
-    async function registrarEntradaDireta(cotaId, pessoaId, tipo, nomePessoa) {
+    async function registrarEntradaDireta(cotaId, pessoaId, tipo, nomePessoa, dataSaida) {
         setMensagemErro("");
         setMensagemOk("");
         try {
-            await apiPost("/entradas/direta", { cota_id: Number(cotaId), pessoa_id: pessoaId, tipo });
+            await apiPost("/entradas/direta", {
+                cota_id: Number(cotaId),
+                pessoa_id: pessoaId,
+                tipo,
+                data_saida: dataSaida || null,
+            });
             setEntradaDireta(false);
             setMensagemOk(`Entrada registrada para ${nomePessoa}. O convite do sócio está em uso.`);
             await carregar();
@@ -164,6 +170,9 @@ function Convites() {
                                         <div className="flex w-56 flex-col">
                                             <span className="text-xs text-muted-foreground">Pessoa</span>
                                             <span className="font-medium">{uso.pessoa}</span>
+                                            {pessoas.find((p) => p.id === uso.pessoa_id)?.bloqueado && (
+                                                <SeloListaNegra motivo={pessoas.find((p) => p.id === uso.pessoa_id).motivo_bloqueio} />
+                                            )}
                                         </div>
 
                                         <div className="flex flex-col">
@@ -215,12 +224,13 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
     const [buscaSocio, setBuscaSocio] = useState("");
     const [cotaId, setCotaId] = useState(null);
     const [tipo, setTipo] = useState("CONVITE_ESPECIAL");
+    const [dataSaida, setDataSaida] = useState("");
 
     useEffect(() => {
         if (aberto) {
             setBuscaPessoa(""); setPessoaId(null); setModoCadastro(false);
             setNovo({ nome: "", cpf: "", telefone: "", cidade: "", categoria: "CONVIDADO" });
-            setBuscaSocio(""); setCotaId(null); setTipo("CONVITE_ESPECIAL");
+            setBuscaSocio(""); setCotaId(null); setTipo("CONVITE_ESPECIAL"); setDataSaida("");
         }
     }, [aberto]);
 
@@ -233,6 +243,7 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
     const dispSelecionado = tipo === "CORTESIA" ? cortesiaDisp : conviteDisp;
 
     const pessoasFiltradas = pessoas.filter((p) => {
+        if (p.categoria === "SOCIO") return false; // sócio não usa convite
         const termo = norm(buscaPessoa);
         if (!termo) return true;
         return norm(p.nome).includes(termo) || (p.cpf ?? "").replace(/\D/g, "").includes(termo.replace(/\D/g, ""));
@@ -261,7 +272,7 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
 
     function confirmar() {
         if (!pessoaId || !cotaId) return;
-        onConfirmar(cotaId, pessoaId, tipo, pessoaSelecionada ? pessoaSelecionada.nome : "");
+        onConfirmar(cotaId, pessoaId, tipo, pessoaSelecionada ? pessoaSelecionada.nome : "", dataSaida);
     }
 
     return (
@@ -316,9 +327,14 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
                             </div>
                         </form>
                     ) : pessoaSelecionada ? (
-                        <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                            <span>{pessoaSelecionada.nome} <span className="text-muted-foreground">{pessoaSelecionada.cpf}</span></span>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => setPessoaId(null)}>Trocar</Button>
+                        <div className="space-y-2">
+                            <div className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${pessoaSelecionada.bloqueado ? "border-destructive/60 text-destructive" : ""}`}>
+                                <span>{pessoaSelecionada.nome} <span className={pessoaSelecionada.bloqueado ? undefined : "text-muted-foreground"}>{pessoaSelecionada.cpf}</span></span>
+                                <Button type="button" variant="ghost" size="sm" onClick={() => setPessoaId(null)}>Trocar</Button>
+                            </div>
+                            {pessoaSelecionada.bloqueado && (
+                                <AvisoListaNegra nome={pessoaSelecionada.nome} motivo={pessoaSelecionada.motivo_bloqueio} />
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -330,10 +346,13 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
                                 ) : (
                                     pessoasFiltradas.slice(0, 50).map((p) => (
                                         <button key={p.id} type="button"
-                                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent"
+                                            className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm ${p.bloqueado ? "bg-destructive/10 text-destructive hover:bg-destructive/15" : "hover:bg-accent"}`}
                                             onClick={() => setPessoaId(p.id)}>
-                                            <span>{p.nome}</span>
-                                            <span className="text-muted-foreground">{p.cpf}</span>
+                                            <span className="flex items-center gap-2">
+                                                {p.nome}
+                                                {p.bloqueado && <SeloListaNegra motivo={p.motivo_bloqueio} />}
+                                            </span>
+                                            <span className={p.bloqueado ? undefined : "text-muted-foreground"}>{p.cpf}</span>
                                         </button>
                                     ))
                                 )}
@@ -390,11 +409,20 @@ function DialogEntradaDireta({ aberto, cotas, pessoas, onCancelar, onConfirmar, 
                             <p className="text-sm text-destructive">Sem saldo disponível para este tipo.</p>
                         )}
                     </div>
+
+                    {/* 4. Dia de saída (opcional) */}
+                    <div className="grid gap-2">
+                        <Label>Dia de saída (opcional)</Label>
+                        <Input type="date" value={dataSaida} onChange={(e) => setDataSaida(e.target.value)} />
+                        <span className="text-xs text-muted-foreground">
+                            Deixe em branco para usar o término automático.
+                        </span>
+                    </div>
                 </div>
 
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={onCancelar}>Cancelar</Button>
-                    <Button type="button" onClick={confirmar} disabled={!pessoaId || !cotaId || dispSelecionado <= 0}>
+                    <Button type="button" onClick={confirmar} disabled={!pessoaId || !cotaId || dispSelecionado <= 0 || Boolean(pessoaSelecionada?.bloqueado)}>
                         Registrar entrada
                     </Button>
                 </DialogFooter>

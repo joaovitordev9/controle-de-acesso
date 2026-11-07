@@ -5,9 +5,13 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Libera o acesso à API para o aplicativo desktop (Electron) rodando na própria
- * máquina e em outros computadores da mesma rede local. Como é uma ferramenta de
- * uso interno (recepção), liberamos qualquer origem para facilitar.
+ * Quem pode chamar a API a partir de uma página web (CORS).
+ *
+ * - O app desktop (Electron) carrega a tela de arquivo local e NÃO envia o cabeçalho
+ *   Origin, então não depende desta lista: funciona em qualquer PC da rede.
+ * - Liberamos só as origens locais usadas no desenvolvimento (npm run dev).
+ * - Qualquer outro site aberto num navegador da rede é bloqueado, para que uma página
+ *   maliciosa não consiga ler ou apagar dados do clube pela API.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -15,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOriginPatterns("http://localhost:[*]", "http://127.0.0.1:[*]")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
